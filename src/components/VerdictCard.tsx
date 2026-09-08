@@ -1,51 +1,80 @@
 import {
-  Bike, Clock, Droplets, Eye, Layers, Leaf, Mountain, Sunrise, Sunset, Thermometer,
-  TriangleAlert, Wind,
-} from 'lucide-react'
-import type { ReactNode } from 'react'
-import { cn } from '@/lib/cn'
-import { compassPoint } from '@/lib/geo'
-import { dayLabel, fmtClock } from '@/lib/time'
-import { fmtDist, fmtElevation, fmtSpeed, fmtTemp, scoreColor } from '@/lib/units'
-import { weatherIcon, weatherInfo } from '@/lib/weather-codes'
-import { topFactor, verdict, type RouteGeometry } from '@/model/score'
-import type { Commute, DayRecord, RideSettings, WeatherModel } from '@/model/types'
-import type { Confidence } from '@/model/consensus'
-import { ScoreRing } from './ScoreRing'
-import { Tooltip } from './ui/Tooltip'
-import { Card } from './ui/Card'
+  Bike,
+  Clock,
+  Droplets,
+  Eye,
+  Layers,
+  Leaf,
+  Mountain,
+  Sunrise,
+  Sunset,
+  Thermometer,
+  TriangleAlert,
+  Wind,
+} from "lucide-react";
+import type { ReactNode } from "react";
+import { cn } from "@/lib/cn";
+import { compassPoint } from "@/lib/geo";
+import { dayLabel, fmtClock } from "@/lib/time";
+import {
+  fmtDist,
+  fmtElevation,
+  fmtSpeed,
+  fmtTemp,
+  scoreColor,
+} from "@/lib/units";
+import { weatherIcon, weatherInfo } from "@/lib/weather-codes";
+import { topFactor, verdict, type RouteGeometry } from "@/model/score";
+import type {
+  Commute,
+  DayRecord,
+  RideSettings,
+  WeatherModel,
+} from "@/model/types";
+import type { Confidence } from "@/model/consensus";
+import { ScoreRing } from "./ScoreRing";
+import { Tooltip } from "./ui/Tooltip";
+import { Card } from "./ui/Card";
 
 interface Props {
-  model: WeatherModel
-  commute: Commute
-  settings: RideSettings
-  geo: RouteGeometry
-  placeLabel: string
-  day?: DayRecord
-  confidence: Confidence | null
+  model: WeatherModel;
+  commute: Commute;
+  settings: RideSettings;
+  geo: RouteGeometry;
+  placeLabel: string;
+  day?: DayRecord;
+  confidence: Confidence | null;
 }
 
 export function VerdictCard({
-  model, commute, settings, geo, placeLabel, day, confidence,
+  model,
+  commute,
+  settings,
+  geo,
+  placeLabel,
+  day,
+  confidence,
 }: Props) {
-  const v = verdict(commute.combined, commute.blockers, topFactor(commute))
-  const colour = scoreColor(commute.combined)
-  const out = commute.out.rec
-  const info = weatherInfo(out.code)
-  const WeatherIcon = weatherIcon(info.group, out.isDay)
+  const v = verdict(commute.combined, commute.blockers, topFactor(commute));
+  const colour = scoreColor(commute.combined);
+  const out = commute.out.rec;
+  const info = weatherInfo(out.code);
+  const WeatherIcon = weatherIcon(info.group, out.isDay);
   const sun = out.isDay
-    ? { Icon: Sunset, label: 'Sunset', at: day?.sunset }
-    : { Icon: Sunrise, label: 'Sunrise', at: day?.sunrise }
+    ? { Icon: Sunset, label: "Sunset", at: day?.sunset }
+    : { Icon: Sunrise, label: "Sunrise", at: day?.sunrise };
 
-  const fastest = Math.min(commute.out.minutes, commute.back.minutes)
-  const slowest = Math.max(commute.out.minutes, commute.back.minutes)
+  const fastest = Math.min(commute.out.minutes, commute.back.minutes);
+  const slowest = Math.max(commute.out.minutes, commute.back.minutes);
 
   return (
     <Card className="relative grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 overflow-hidden sm:gap-8">
       <div
         aria-hidden
         className="pointer-events-none absolute -bottom-[60%] -right-[30%] aspect-square w-3/5 opacity-[0.16] transition-[background] duration-700"
-        style={{ background: `radial-gradient(circle, ${colour}, transparent 68%)` }}
+        style={{
+          background: `radial-gradient(circle, ${colour}, transparent 68%)`,
+        }}
       />
 
       <div className="min-w-0">
@@ -75,11 +104,15 @@ export function VerdictCard({
 
         <div className="mt-4 flex flex-wrap gap-1.5">
           <Chip icon={<Clock size={14} />}>
-            {fmtClock(settings.outTime, settings.clock12)} → {fmtClock(settings.backTime, settings.clock12)}
+            {fmtClock(settings.outTime, settings.clock12)} →{" "}
+            {fmtClock(settings.backTime, settings.clock12)}
           </Chip>
           <Chip icon={<Bike size={14} />}>
-            {fastest === slowest ? `${fastest} min` : `${fastest}–${slowest} min`}
-            {' · '}{fmtDist(geo.distanceKm, settings.units)}
+            {fastest === slowest
+              ? `${fastest} min`
+              : `${fastest}–${slowest} min`}
+            {" · "}
+            {fmtDist(geo.distanceKm, settings.units)}
           </Chip>
           {geo.ascentM >= 15 && (
             <Chip icon={<Mountain size={14} />}>
@@ -91,7 +124,7 @@ export function VerdictCard({
               <span>
                 <Chip
                   icon={<Layers size={14} />}
-                  tone={confidence.level === 'low' ? 'warn' : 'neutral'}
+                  tone={confidence.level === "low" ? "warn" : "neutral"}
                 >
                   {confidence.headline}
                 </Chip>
@@ -99,7 +132,9 @@ export function VerdictCard({
             </Tooltip>
           )}
           {commute.blockers.map((b) => (
-            <Chip key={b} icon={<TriangleAlert size={14} />} tone="bad">{b}</Chip>
+            <Chip key={b} icon={<TriangleAlert size={14} />} tone="bad">
+              {b}
+            </Chip>
           ))}
         </div>
       </div>
@@ -107,53 +142,93 @@ export function VerdictCard({
       <ScoreRing score={commute.combined} />
 
       <ul className="col-span-2 mt-1 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-line-soft pt-4 sm:grid-cols-3 lg:grid-cols-6">
-        <Condition Icon={WeatherIcon} k={info.label} v={fmtTemp(out.temp, settings.units)} />
-        <Condition Icon={Thermometer} k="On the bike" v={fmtTemp(commute.out.feel, settings.units)}
-                   sub={`at ${settings.speedKmh} km/h`} />
-        <Condition Icon={Wind} k="Wind" v={fmtSpeed(out.wind, settings.units)}
-                   sub={`${compassPoint(out.windDir)}${out.gust > out.wind + 8 ? ` · gusts ${Math.round(out.gust)}` : ''}`} />
-        <Condition Icon={Droplets} k="Rain chance" v={`${Math.round(out.precipProb)}%`}
-                   sub={`${out.precip.toFixed(1)} mm/h forecast`} />
+        <Condition
+          Icon={WeatherIcon}
+          k={info.label}
+          v={fmtTemp(out.temp, settings.units)}
+        />
+        <Condition
+          Icon={Thermometer}
+          k="On the bike"
+          v={fmtTemp(commute.out.feel, settings.units)}
+          sub={`at ${settings.speedKmh} km/h`}
+        />
+        <Condition
+          Icon={Wind}
+          k="Wind"
+          v={fmtSpeed(out.wind, settings.units)}
+          sub={`${compassPoint(out.windDir)}${out.gust > out.wind + 8 ? ` · gusts ${Math.round(out.gust)}` : ""}`}
+        />
+        <Condition
+          Icon={Droplets}
+          k="Rain chance"
+          v={`${Math.round(out.precipProb)}%`}
+          sub={`${out.precip.toFixed(1)} mm/h forecast`}
+        />
         {/* Say when there is no air-quality forecast rather than quietly
             swapping in a different measurement. */}
         {out.aqi != null ? (
-          <Condition Icon={Leaf} k="Air quality" v={String(Math.round(out.aqi))} sub={`${out.aqiScale} AQI`} />
+          <Condition
+            Icon={Leaf}
+            k="Air quality"
+            v={String(Math.round(out.aqi))}
+            sub={`${out.aqiScale} AQI`}
+          />
         ) : (
           <Condition Icon={Leaf} k="Air quality" v="–" sub="beyond forecast" />
         )}
-        <Condition Icon={Eye} k="Visibility"
-                   v={out.vis != null ? `${(out.vis / 1000).toFixed(0)} km` : '–'} />
-        {sun.at && (
+        <Condition
+          Icon={Eye}
+          k="Visibility"
+          v={out.vis != null ? `${(out.vis / 1000).toFixed(0)} km` : "–"}
+        />
+        {/* {sun.at && (
           <Condition Icon={sun.Icon} k={sun.label}
                      v={fmtClock(sun.at.slice(11, 16), settings.clock12)} />
-        )}
+        )} */}
       </ul>
     </Card>
-  )
+  );
 }
 
 const CHIP_TONES = {
-  neutral: 'border-line-soft bg-card-2 text-ink-2',
-  warn: 'border-amber-400/30 bg-amber-400/10 text-amber-300',
-  bad: 'border-rose-400/30 bg-rose-400/10 text-rose-300',
-} as const
+  neutral: "border-line-soft bg-card-2 text-ink-2",
+  warn: "border-amber-400/30 bg-amber-400/10 text-amber-300",
+  bad: "border-rose-400/30 bg-rose-400/10 text-rose-300",
+} as const;
 
-function Chip({ icon, children, tone = 'neutral' }: {
-  icon: ReactNode; children: ReactNode; tone?: keyof typeof CHIP_TONES
+function Chip({
+  icon,
+  children,
+  tone = "neutral",
+}: {
+  icon: ReactNode;
+  children: ReactNode;
+  tone?: keyof typeof CHIP_TONES;
 }) {
   return (
-    <span className={cn(
-      'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-[0.82rem]',
-      CHIP_TONES[tone],
-    )}>
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-[0.82rem]",
+        CHIP_TONES[tone],
+      )}
+    >
       <span className="opacity-75">{icon}</span>
       {children}
     </span>
-  )
+  );
 }
 
-function Condition({ Icon, k, v, sub }: {
-  Icon: typeof Wind; k: string; v: string; sub?: string
+function Condition({
+  Icon,
+  k,
+  v,
+  sub,
+}: {
+  Icon: typeof Wind;
+  k: string;
+  v: string;
+  sub?: string;
 }) {
   return (
     <li className="flex flex-col gap-0.5">
@@ -164,5 +239,5 @@ function Condition({ Icon, k, v, sub }: {
       <span className="text-[1.02rem] font-semibold tracking-tight">{v}</span>
       {sub && <span className="text-[0.75rem] text-ink-3">{sub}</span>}
     </li>
-  )
+  );
 }
