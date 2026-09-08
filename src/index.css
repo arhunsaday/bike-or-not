@@ -1,0 +1,157 @@
+@import 'tailwindcss';
+
+/* Theme is driven by a class on <html> so the user can override the OS. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: 'Archivo', 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+  --color-bg: var(--bg);
+  --color-card: var(--card);
+  --color-card-2: var(--card-2);
+  --color-line: var(--line);
+  --color-line-soft: var(--line-soft);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-verdict: var(--verdict);
+
+  --radius-card: 1.6rem;
+  --ease-out-soft: cubic-bezier(0.22, 0.9, 0.3, 1);
+}
+
+:root {
+  --bg: #eef1f8;
+  --ink: #101425;
+  --ink-2: #4a5270;
+  --ink-3: #7a839f;
+  --card: rgb(255 255 255 / 0.72);
+  --card-2: rgb(255 255 255 / 0.5);
+  --line: rgb(16 20 37 / 0.1);
+  --line-soft: rgb(16 20 37 / 0.06);
+  --hi: rgb(255 255 255 / 0.9);
+  --shadow: 0 20px 45px -26px rgb(23 34 71 / 0.45);
+
+  /* Score colours are tuned for a dark ground; on white they need taking
+     down a stop before the yellows become unreadable. */
+  --score-ink: brightness(0.76) saturate(1.4);
+
+  --sky-1: #dbe7fb;
+  --sky-2: #f4f6fb;
+  --sky-3: #cfe0f7;
+  --verdict: #34d399;
+}
+
+.dark {
+  --bg: #080b16;
+  --ink: #f2f5ff;
+  --ink-2: #aab3d0;
+  --ink-3: #6f7899;
+  --card: rgb(255 255 255 / 0.045);
+  --card-2: rgb(255 255 255 / 0.028);
+  --line: rgb(255 255 255 / 0.09);
+  --line-soft: rgb(255 255 255 / 0.055);
+  --hi: rgb(255 255 255 / 0.14);
+  --shadow: 0 24px 60px -24px rgb(0 0 0 / 0.7);
+  --score-ink: none;
+
+  --sky-1: #131a33;
+  --sky-2: #0a0e1d;
+  --sky-3: #1d2a52;
+}
+
+@layer base {
+  * { border-color: var(--line); }
+
+  html { color-scheme: light; }
+  html.dark { color-scheme: dark; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  ::selection { background: color-mix(in srgb, var(--verdict) 35%, transparent); }
+}
+
+@utility glass {
+  background: var(--card);
+  border: 1px solid var(--line);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  box-shadow: var(--shadow);
+}
+
+/* A hairline of light along the top edge of every card. */
+@utility card-sheen {
+  position: relative;
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    height: 1px;
+    border-radius: inherit;
+    background: linear-gradient(90deg, transparent, var(--hi), transparent);
+  }
+}
+
+@utility score-ink { filter: var(--score-ink); }
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
+/* Entrance animations live in CSS, never in JS. A page opened in a background
+   tab gets no animation frames, and content whose visibility depends on a
+   requestAnimationFrame callback would stay invisible until focused. */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(14px); }
+}
+
+@utility rise {
+  animation: rise 0.5s var(--ease-out-soft) both;
+}
+
+@keyframes verdict-in {
+  from { opacity: 0; transform: translateY(8px); }
+}
+
+@utility verdict-in {
+  animation: verdict-in 0.45s var(--ease-out-soft) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* `backwards` rather than `both`: once the sweep finishes the inline value
+   applies again, so a score change transitions instead of freezing. */
+@keyframes ring-sweep {
+  from { stroke-dashoffset: 351.86; }
+}
+
+/* No transition on stroke or offset: a transition that never receives frames
+   holds its *start* value, which would leave the ring showing the previous
+   verdict's colour. The painted value must always equal the real one. */
+.ring-sweep {
+  animation: ring-sweep 1s var(--ease-out-soft) backwards;
+}
+
+@keyframes bar-grow {
+  from { transform: scaleX(0); }
+}
+
+.bar-grow {
+  transform-origin: left;
+  animation: bar-grow 0.6s var(--ease-out-soft) backwards;
+}
