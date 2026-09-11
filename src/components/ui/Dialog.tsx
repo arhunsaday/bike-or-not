@@ -19,14 +19,14 @@ export function Dialog({ open, onOpenChange, title, description, children, class
         <RD.Overlay className="fixed inset-0 z-50 bg-black/55 backdrop-blur-[3px]" />
         <RD.Content
           className={cn(
-            'fixed left-1/2 top-1/2 z-50 w-[min(40rem,calc(100vw-1.5rem))] -translate-x-1/2 -translate-y-1/2',
-            'max-h-[88dvh] overflow-hidden rounded-card border border-line bg-bg/92 shadow-2xl backdrop-blur-2xl',
+            'fixed left-1/2 top-1/2 z-50 w-[min(40rem,calc(100vw-1rem))] -translate-x-1/2 -translate-y-1/2',
+            'max-h-[90dvh] overflow-hidden rounded-card border border-line bg-bg/92 shadow-2xl backdrop-blur-2xl',
             'focus:outline-none',
             className,
           )}
         >
-          <div className="flex items-center justify-between border-b border-line-soft px-5 py-4 sm:px-7">
-            <div>
+          <div className="flex items-start justify-between gap-3 border-b border-line-soft px-5 py-4 sm:px-7">
+            <div className="min-w-0">
               <RD.Title className="text-[1.05rem] font-semibold tracking-tight">{title}</RD.Title>
               {description && (
                 <RD.Description className="mt-0.5 text-[0.82rem] text-ink-3">
@@ -36,12 +36,13 @@ export function Dialog({ open, onOpenChange, title, description, children, class
             </div>
             <RD.Close
               aria-label="Close"
-              className="grid size-9 place-items-center rounded-xl border border-line bg-card text-ink-2 transition hover:text-ink active:scale-95"
+              className="grid size-11 shrink-0 place-items-center rounded-xl border border-line bg-card text-ink-2 transition hover:text-ink active:scale-95 sm:size-10"
             >
               <X size={17} />
             </RD.Close>
           </div>
-          <div className="max-h-[calc(88dvh-4.5rem)] overflow-y-auto px-5 py-6 sm:px-7">
+          {/* Bottom padding clears the home indicator on a phone. */}
+          <div className="max-h-[calc(90dvh-4.75rem)] overflow-y-auto px-5 pt-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:px-7">
             {children}
           </div>
         </RD.Content>

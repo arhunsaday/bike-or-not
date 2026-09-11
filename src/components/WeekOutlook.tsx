@@ -27,7 +27,10 @@ export function WeekOutlook({ model, week, settings, activeDate, onPick }: Props
       <CardHead title="Week ahead" note="Scored for your commute hours, both legs." />
       {airNote && <p className="-mt-2 mb-3 text-[0.78rem] text-ink-3">{airNote}</p>}
 
-      <ol className="grid grid-cols-3 gap-1.5 sm:grid-cols-4 lg:grid-cols-7">
+      {/* Seven days never divide evenly into a phone-width grid — three
+          columns leaves a lone orphan on the last row. A snapping strip shows
+          them in order and lets the thumb do the work. */}
+      <ol className="no-scrollbar week-strip -mx-1 flex snap-x snap-mandatory gap-1.5 overflow-x-auto px-1 pb-1 sm:mx-0 sm:grid sm:grid-cols-4 sm:px-0 sm:pb-0 lg:grid-cols-7">
         {week.map((day) => {
           const c = day.commute
           const colour = scoreColor(c.combined)
@@ -36,7 +39,7 @@ export function WeekOutlook({ model, week, settings, activeDate, onPick }: Props
           const active = day.date === activeDate
 
           return (
-            <li key={day.date}>
+            <li key={day.date} className="min-w-[4.9rem] flex-1 snap-start sm:min-w-0">
               <button
                 type="button"
                 onClick={() => onPick(day.date)}

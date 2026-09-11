@@ -2,10 +2,19 @@ import { CloudDrizzle, Sun, ThumbsUp } from 'lucide-react'
 import { routeKey, useSettings, type FeedbackAnswer } from '@/store/settings'
 import type { Commute } from '@/model/types'
 
-const OPTIONS: { answer: FeedbackAnswer; label: string; icon: typeof Sun }[] = [
-  { answer: 'harsh', label: 'Better than it said', icon: Sun },
-  { answer: 'right', label: 'About right', icon: ThumbsUp },
-  { answer: 'optimistic', label: 'Worse than it said', icon: CloudDrizzle },
+interface Option {
+  answer: FeedbackAnswer
+  /** Full phrasing, once there is room for it. */
+  label: string
+  /** Phones get three buttons in a row; the long labels wrapped to three lines. */
+  short: string
+  icon: typeof Sun
+}
+
+const OPTIONS: Option[] = [
+  { answer: 'harsh', label: 'Better than it said', short: 'Better', icon: Sun },
+  { answer: 'right', label: 'About right', short: 'Spot on', icon: ThumbsUp },
+  { answer: 'optimistic', label: 'Worse than it said', short: 'Worse', icon: CloudDrizzle },
 ]
 
 /**
@@ -26,14 +35,15 @@ export function FeedbackBar({ commute, verdict }: { commute: Commute; verdict: s
         {existing ? 'Thanks — noted for next time.' : 'How did that ride actually go?'}
       </p>
 
-      <div className="flex flex-wrap gap-1.5 sm:ml-auto">
-        {OPTIONS.map(({ answer, label, icon: Icon }) => {
+      <div className="flex w-full gap-1.5 sm:ml-auto sm:w-auto">
+        {OPTIONS.map(({ answer, label, short, icon: Icon }) => {
           const chosen = existing?.answer === answer
           return (
             <button
               key={answer}
               type="button"
               aria-pressed={chosen}
+              title={label}
               onClick={() => record({
                 date: commute.date,
                 routeId,
@@ -41,13 +51,14 @@ export function FeedbackBar({ commute, verdict }: { commute: Commute; verdict: s
                 score: commute.combined,
                 answer,
               })}
-              className="flex items-center gap-1.5 rounded-full border bg-card-2 px-2.5 py-1.5 text-[0.79rem] transition hover:bg-card"
+              className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-full border bg-card-2 px-3 text-[0.79rem] transition hover:bg-card sm:min-h-9 sm:flex-none"
               style={chosen
                 ? { borderColor: 'var(--verdict)', color: 'var(--verdict)' }
                 : { borderColor: 'var(--line-soft)', color: 'var(--color-ink-2)' }}
             >
-              <Icon size={13} />
-              {label}
+              <Icon size={13} className="shrink-0" />
+              <span className="sm:hidden">{short}</span>
+              <span className="hidden sm:inline">{label}</span>
             </button>
           )
         })}

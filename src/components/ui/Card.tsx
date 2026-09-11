@@ -26,7 +26,7 @@ export function IconButton({ className, children, ...rest }: ComponentProps<'but
     <button
       type="button"
       className={cn(
-        'grid size-9 shrink-0 place-items-center rounded-xl border border-line bg-card text-ink-2',
+        'grid size-11 shrink-0 place-items-center rounded-xl border border-line bg-card text-ink-2 sm:size-9',
         'transition hover:bg-card-2 hover:text-ink active:scale-95',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-verdict',
         className,

@@ -24,8 +24,14 @@ createRoot(document.getElementById('root')!).render(
         <AppErrorBoundary>
           <App />
         </AppErrorBoundary>
+        {/* Sonner's default 356px plus its offsets overflows a 375px screen,
+            and its default stacking order puts toasts over open dialogs. */}
         <Toaster
           position="bottom-center"
+          style={{
+            zIndex: 45,
+            '--width': 'min(24rem, calc(100vw - 1.5rem))',
+          } as React.CSSProperties}
           toastOptions={{
             className: 'glass !rounded-2xl !text-ink',
             style: { background: 'var(--bg)', color: 'var(--ink)', borderColor: 'var(--line)' },

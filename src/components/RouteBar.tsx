@@ -22,7 +22,7 @@ export function RouteBar({ settings, geo, hasRoute, routePending }: Props) {
 
   return (
     <Card className="p-4 sm:p-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:gap-3">
         <PlaceCombobox
           label="From"
           value={settings.from}
@@ -33,13 +33,15 @@ export function RouteBar({ settings, geo, hasRoute, routePending }: Props) {
           near={settings.to}
         />
 
+        {/* Vertical between stacked fields on a phone, horizontal beside them
+            on a wider screen — the same button either way. */}
         <IconButton
           onClick={swapRoute}
           aria-label="Swap start and destination"
           title="Swap start and destination"
-          className="mb-0.5 hidden sm:grid"
+          className="mb-0.5 self-center sm:self-end"
         >
-          <ArrowLeftRight size={15} />
+          <ArrowLeftRight size={15} className="rotate-90 sm:rotate-0" />
         </IconButton>
 
         <PlaceCombobox
@@ -106,8 +108,8 @@ export function RouteBar({ settings, geo, hasRoute, routePending }: Props) {
           </Tooltip>
         </div>
       ) : (
-        <p className="mt-3.5 flex items-center gap-2 border-t border-line-soft pt-3 text-[0.8rem] text-ink-3">
-          <MoveRight size={14} />
+        <p className="mt-3.5 flex items-start gap-2 border-t border-line-soft pt-3 text-[0.8rem] text-ink-3">
+          <MoveRight size={14} className="mt-0.5 shrink-0" />
           Add a destination and every wind gets split into a shove and a wall — plus the real
           route, its climb and your journey time.
         </p>

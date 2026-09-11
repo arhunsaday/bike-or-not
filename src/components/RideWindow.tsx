@@ -87,7 +87,12 @@ export function RideWindow({ model, commute, settings, geo, consensusMap }: Prop
       <CardHead title="Ride window" note={note} />
 
       <div className="no-scrollbar -mx-1 overflow-x-auto px-1">
-        <div style={{ minWidth: Math.max(rows.length * 42, 320), height: 168 }}>
+        {/* Narrower bars on a phone: 42px each meant only eight of the next
+            twenty-four hours were on screen at once. */}
+        <div
+          className="h-[168px] min-w-[max(20rem,calc(var(--bars)*2.15rem))] sm:min-w-[max(20rem,calc(var(--bars)*2.6rem))]"
+          style={{ '--bars': rows.length } as React.CSSProperties}
+        >
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={rows} margin={{ top: 6, right: 0, bottom: 0, left: 0 }} barCategoryGap={3}>
               <XAxis

@@ -45,6 +45,8 @@ export interface RideFeedback {
 interface SettingsStore extends RideSettings {
   routes: SavedRoute[]
   feedback: RideFeedback[]
+  /** Whether we have already asked where the rider rides. Asked once, never nagged. */
+  locationAsked: boolean
 
   patch: (next: Partial<RideSettings>) => void
   setEndpoint: (which: 'from' | 'to', place: Place | null) => void
@@ -56,6 +58,7 @@ interface SettingsStore extends RideSettings {
   deleteRoute: (id: string) => void
 
   recordFeedback: (entry: Omit<RideFeedback, 'at'>) => void
+  markLocationAsked: () => void
 }
 
 /** Identifies the current route for feedback, without needing it to be saved. */
@@ -68,6 +71,7 @@ export const useSettings = create<SettingsStore>()(
       ...DEFAULTS,
       routes: [],
       feedback: [],
+      locationAsked: false,
 
       patch: (next) => set(next),
       setEndpoint: (which, place) => set({ [which]: place } as Partial<RideSettings>),
@@ -96,6 +100,8 @@ export const useSettings = create<SettingsStore>()(
 
       deleteRoute: (id) => set((s) => ({ routes: s.routes.filter((r) => r.id !== id) })),
 
+      markLocationAsked: () => set({ locationAsked: true }),
+
       recordFeedback: (entry) =>
         set((s) => ({
           feedback: [
@@ -105,6 +111,6 @@ export const useSettings = create<SettingsStore>()(
           ].slice(0, 400),
         })),
     }),
-    { name: 'bike-or-not', version: 3 },
+    { name: 'bike-or-not', version: 4 },
   ),
 )

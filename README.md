@@ -42,6 +42,10 @@ resolution it says "rain starting in about 75 minutes" instead.
 **Saved routes.** Commute, weekend loop, school run — switch between them in a
 click. Kept in `localStorage` alongside your settings.
 
+**Built for a phone first.** It asks where you ride on first run rather than
+showing a city you have never been to. Tap targets are thumb-sized, the week
+scrolls, and nothing is gated behind a hover.
+
 **Six forecasts, not one.** ECMWF, ICON, GFS, GEM, UKMO and ARPEGE are queried
 together. Where they disagree you are told; where several of them see rain the
 headline forecast has missed, the score takes the more cautious view.

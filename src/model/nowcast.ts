@@ -35,21 +35,22 @@ export function buildNowcast(forecast: Forecast): Nowcast | null {
   if (!block) return null
 
   const now = parseISO(forecast.current.time)
-  const steps: NowcastStep[] = []
+  const all: NowcastStep[] = block.time.map((t, i) => ({
+    t,
+    minutes: differenceInMinutes(parseISO(t), now),
+    mm: block.precipitation[i] ?? 0,
+    prob: block.precipitation_probability[i] ?? 0,
+    code: block.weather_code[i] ?? 0,
+  }))
 
-  block.time.forEach((t, i) => {
-    const minutes = differenceInMinutes(parseISO(t), now)
-    // Keep the step we are currently inside, then everything up to the horizon.
-    if (minutes < -15 || minutes > HORIZON_MIN) return
-    steps.push({
-      t,
-      minutes,
-      mm: block.precipitation[i] ?? 0,
-      prob: block.precipitation_probability[i] ?? 0,
-      code: block.weather_code[i] ?? 0,
-    })
-  })
+  // Exactly one step is "now" — the quarter-hour we are currently inside. On
+  // the stroke of the quarter hour two steps qualify as non-future, and
+  // keeping both labelled the strip with "now" twice.
+  const current = all.findLastIndex((s) => s.minutes <= 0)
+  const start = current === -1 ? all.findIndex((s) => s.minutes > 0) : current
+  if (start === -1) return null
 
+  const steps = all.slice(start).filter((s) => s.minutes <= HORIZON_MIN)
   if (steps.length < 2) return null
 
   const rainingNow = steps[0].mm >= WET_MM

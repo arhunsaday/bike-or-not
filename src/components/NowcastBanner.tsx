@@ -18,29 +18,33 @@ export function NowcastBanner({ nowcast }: { nowcast: Nowcast }) {
 
   return (
     <div className="glass card-sheen flex flex-col gap-3 rounded-card border-amber-400/25 p-4 sm:flex-row sm:items-center sm:gap-5 sm:p-5">
-      <div className="flex items-center gap-3">
-        <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-amber-400/10 text-amber-400">
+      <div className="flex items-start gap-3 sm:items-center">
+        <span className="mt-0.5 grid size-9 shrink-0 place-items-center rounded-xl bg-amber-400/10 text-amber-400 sm:mt-0">
           {rainingNow ? <Umbrella size={17} /> : <CloudRain size={17} />}
         </span>
-        <div>
-          <b className="block text-[0.92rem] font-semibold tracking-tight">{headline}</b>
+        <div className="min-w-0">
+          <b className="block text-[0.92rem] font-semibold tracking-tight text-pretty">
+            {headline}
+          </b>
           <span className="text-[0.78rem] text-ink-3">
-            Radar nowcast, 15-minute steps · peak {peakMm.toFixed(1)} mm/h
+            Radar nowcast · peak {peakMm.toFixed(1)} mm/h
           </span>
         </div>
       </div>
 
-      <div className="flex flex-1 items-end gap-[3px] sm:justify-end" aria-hidden>
-        {steps.map((s) => (
-          <span key={s.t} className="flex w-full max-w-8 flex-col items-center gap-1">
-            <span className="flex h-8 w-full items-end">
+      {/* Labelling all nine quarter-hours is unreadable on a phone, so only
+          the half-hour marks are named. */}
+      <div className="flex flex-1 items-end gap-1 sm:justify-end" aria-hidden>
+        {steps.map((s, i) => (
+          <span key={s.t} className="flex min-w-0 flex-1 flex-col items-center gap-1 sm:max-w-9">
+            <span className="flex h-9 w-full items-end">
               <i
                 className="w-full rounded-sm bg-amber-400/70"
                 style={{ height: `${clamp(s.mm * 45 + (s.mm > 0 ? 12 : 3), 3, 100)}%` }}
               />
             </span>
-            <span className="text-[0.6rem] text-ink-3">
-              {s.minutes <= 0 ? 'now' : `+${s.minutes}`}
+            <span className="h-3 text-[0.6rem] leading-3 text-ink-3">
+              {i % 2 === 0 ? (s.minutes <= 0 ? 'now' : `+${s.minutes}`) : ''}
             </span>
           </span>
         ))}

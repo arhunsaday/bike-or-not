@@ -3,6 +3,7 @@ import { Suspense, lazy, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { FeedbackBar } from '@/components/FeedbackBar'
 import { KitList } from '@/components/KitList'
+import { LocationPrompt } from '@/components/LocationPrompt'
 import { NowcastBanner } from '@/components/NowcastBanner'
 import { LegCard } from '@/components/LegCard'
 import { Precipitation } from '@/components/Precipitation'
@@ -16,7 +17,7 @@ import { useCommute } from '@/hooks/useCommute'
 import { cn } from '@/lib/cn'
 import { scoreColor } from '@/lib/units'
 import { topFactor, verdict } from '@/model/score'
-import { DEMO_POINT } from '@/store/settings'
+import { DEMO_POINT, useSettings } from '@/store/settings'
 
 /** Stagger the reveal without making visibility depend on JavaScript. */
 // Recharts is roughly two thirds of the bundle; it loads on its own.
@@ -37,15 +38,7 @@ export default function App() {
   const dark = useThemeClass(settings.theme)
   useShortcuts(() => setSettingsOpen(true), () => void refetch())
 
-  const warned = useRef(false)
-  useEffect(() => {
-    if (!isDemo || warned.current || !model) return
-    warned.current = true
-    toast(`Showing ${DEMO_POINT.label}`, {
-      description: 'Set where you ride from and to for a verdict that is actually yours.',
-      duration: 7000,
-    })
-  }, [isDemo, model])
+  const locationAsked = useSettings((s) => s.locationAsked)
 
   const routeWarned = useRef(false)
   useEffect(() => {
@@ -67,7 +60,7 @@ export default function App() {
       <Sky rec={commute?.out.rec ?? null} dark={dark} accent={accent} />
       <Precipitation rec={commute?.out.rec ?? null} />
 
-      <header className="sticky top-0 z-30 mx-auto flex max-w-[71rem] items-center gap-3 px-4 py-3 backdrop-blur-md sm:px-8">
+      <header className="sticky top-0 z-30 mx-auto flex max-w-[71rem] items-center gap-3 px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 backdrop-blur-md sm:px-8">
         <div className="flex items-center gap-2.5">
           <span className="grid size-9 place-items-center rounded-xl border border-line bg-card text-verdict transition-colors duration-500">
             <Bike size={19} />
@@ -88,7 +81,7 @@ export default function App() {
         </div>
       </header>
 
-      <main className="mx-auto flex max-w-[71rem] flex-col gap-4 px-4 pb-16 sm:px-8">
+      <main className="mx-auto flex max-w-[71rem] flex-col gap-4 px-4 pb-[max(4rem,calc(env(safe-area-inset-bottom)+3rem))] sm:px-8">
         <div {...rise(0)}>
           <RouteBar settings={settings} geo={geo} hasRoute={hasRoute}
                     routePending={routePending} />
@@ -177,6 +170,8 @@ export default function App() {
           </>
         )}
       </main>
+
+      <LocationPrompt open={isDemo && !locationAsked} />
 
       <SettingsSheet open={settingsOpen} onOpenChange={setSettingsOpen}
                      settings={settings} hasRoute={hasRoute} />

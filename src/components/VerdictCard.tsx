@@ -68,7 +68,7 @@ export function VerdictCard({
   const slowest = Math.max(commute.out.minutes, commute.back.minutes);
 
   return (
-    <Card className="relative grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 overflow-hidden sm:gap-8">
+    <Card className="relative grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-4 gap-y-3 overflow-hidden sm:gap-x-8">
       <div
         aria-hidden
         className="pointer-events-none absolute -bottom-[60%] -right-[30%] aspect-square w-3/5 opacity-[0.16] transition-[background] duration-700"
@@ -77,71 +77,75 @@ export function VerdictCard({
         }}
       />
 
-      <div className="min-w-0">
-        {/* Wraps rather than truncates: "1 Rue Saglio → 6 Rue Eugénie Brazier"
-            clipped to "1 …" tells the reader nothing. */}
-        <p className="flex flex-wrap items-center gap-x-2 text-[0.78rem] font-semibold uppercase tracking-[0.09em] text-ink-3">
-          <span>{placeLabel}</span>
-          <span className="flex items-center gap-2">
-            <i className="not-italic opacity-50">·</i>
-            {dayLabel(commute.date, model.today, true)}
-          </span>
-        </p>
+      {/* Wraps rather than truncates: "1 Rue Saglio → 6 Rue Eugénie Brazier"
+          clipped to "1 …" tells the reader nothing. */}
+      <p className="col-start-1 row-start-1 flex min-w-0 flex-wrap items-center gap-x-2 text-[0.78rem] font-semibold uppercase tracking-[0.09em] text-ink-3">
+        <span>{placeLabel}</span>
+        <span className="flex items-center gap-2">
+          <i className="not-italic opacity-50">·</i>
+          {dayLabel(commute.date, model.today, true)}
+        </span>
+      </p>
 
-        {/* Keyed so a new verdict replays the reveal; CSS so it never depends
-            on animation frames arriving. */}
-        <h1
-          key={v.word}
-          className="verdict-in score-ink my-2 font-display text-[clamp(2.9rem,9vw,5.1rem)] font-extrabold leading-[0.94] tracking-[-0.035em] text-balance"
-          style={{ color: colour, fontVariationSettings: "'wdth' 122" }}
-        >
-          {v.word}
-        </h1>
-
-        <p className="max-w-[34ch] text-[clamp(0.95rem,1.6vw,1.08rem)] text-ink-2 text-pretty first-letter:uppercase">
-          {v.sub}
-        </p>
-
-        <div className="mt-4 flex flex-wrap gap-1.5">
-          <Chip icon={<Clock size={14} />}>
-            {fmtClock(settings.outTime, settings.clock12)} →{" "}
-            {fmtClock(settings.backTime, settings.clock12)}
-          </Chip>
-          <Chip icon={<Bike size={14} />}>
-            {fastest === slowest
-              ? `${fastest} min`
-              : `${fastest}–${slowest} min`}
-            {" · "}
-            {fmtDist(geo.distanceKm, settings.units)}
-          </Chip>
-          {geo.ascentM >= 15 && (
-            <Chip icon={<Mountain size={14} />}>
-              {fmtElevation(geo.ascentM, settings.units)} of climbing
-            </Chip>
-          )}
-          {confidence && (
-            <Tooltip label={confidence.detail}>
-              <span>
-                <Chip
-                  icon={<Layers size={14} />}
-                  tone={confidence.level === "low" ? "warn" : "neutral"}
-                >
-                  {confidence.headline}
-                </Chip>
-              </span>
-            </Tooltip>
-          )}
-          {commute.blockers.map((b) => (
-            <Chip key={b} icon={<TriangleAlert size={14} />} tone="bad">
-              {b}
-            </Chip>
-          ))}
-        </div>
+      {/* The ring sits beside the headline and nothing else, so the prose
+          below it gets the full width of the card even on a phone. */}
+      <div className="col-start-2 row-start-1 row-span-2 self-center">
+        <ScoreRing score={commute.combined} />
       </div>
 
-      <ScoreRing score={commute.combined} />
+      {/* Keyed so a new verdict replays the reveal; CSS so it never depends
+          on animation frames arriving. */}
+      <h1
+        key={v.word}
+        className="verdict-in score-ink col-start-1 row-start-2 min-w-0 font-display text-[clamp(2.6rem,11vw,5.1rem)] font-extrabold leading-[0.94] tracking-[-0.035em] text-balance"
+        style={{ color: colour, fontVariationSettings: "'wdth' 122" }}
+      >
+        {v.word}
+      </h1>
 
-      <ul className="col-span-2 mt-1 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-line-soft pt-4 sm:grid-cols-3 lg:grid-cols-6">
+      <p className="col-span-2 max-w-[46ch] text-[clamp(0.95rem,1.6vw,1.08rem)] text-ink-2 text-pretty first-letter:uppercase">
+        {v.sub}
+      </p>
+
+      <div className="col-span-2 flex flex-wrap gap-1.5">
+        <Chip icon={<Clock size={14} />}>
+          {fmtClock(settings.outTime, settings.clock12)} →{" "}
+          {fmtClock(settings.backTime, settings.clock12)}
+        </Chip>
+        <Chip icon={<Bike size={14} />}>
+          {fastest === slowest
+            ? `${fastest} min`
+            : `${fastest}–${slowest} min`}
+          {" · "}
+          {fmtDist(geo.distanceKm, settings.units)}
+        </Chip>
+        {geo.ascentM >= 15 && (
+          <Chip icon={<Mountain size={14} />}>
+            {fmtElevation(geo.ascentM, settings.units)} of climbing
+          </Chip>
+        )}
+        {confidence && (
+          <Tooltip label={confidence.detail}>
+            <span>
+              <Chip
+                icon={<Layers size={14} />}
+                tone={confidence.level === "low" ? "warn" : "neutral"}
+              >
+                {confidence.headline}
+              </Chip>
+            </span>
+          </Tooltip>
+        )}
+        {commute.blockers.map((b) => (
+          <Chip key={b} icon={<TriangleAlert size={14} />} tone="bad">
+            {b}
+          </Chip>
+        ))}
+      </div>
+
+      {/* An odd number of tiles would leave an orphan in the two-column phone
+          layout, so the last one takes the whole row. */}
+      <ul className="col-span-2 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-line-soft pt-4 [&>li:last-child:nth-child(odd)]:col-span-2 sm:grid-cols-4 sm:[&>li:last-child:nth-child(odd)]:col-span-1 lg:grid-cols-7">
         <Condition
           Icon={WeatherIcon}
           k={info.label}
@@ -182,10 +186,13 @@ export function VerdictCard({
           k="Visibility"
           v={out.vis != null ? `${(out.vis / 1000).toFixed(0)} km` : "–"}
         />
-        {/* {sun.at && (
-          <Condition Icon={sun.Icon} k={sun.label}
-                     v={fmtClock(sun.at.slice(11, 16), settings.clock12)} />
-        )} */}
+        {sun.at && (
+          <Condition
+            Icon={sun.Icon}
+            k={sun.label}
+            v={fmtClock(sun.at.slice(11, 16), settings.clock12)}
+          />
+        )}
       </ul>
     </Card>
   );
