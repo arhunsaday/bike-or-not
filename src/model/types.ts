@@ -1,5 +1,6 @@
 import type { Place, WindComponents } from '@/lib/geo'
 import type { Units } from '@/lib/units'
+import type { Lang } from '@/i18n/detect'
 
 export interface HourRecord {
   t: string
@@ -99,6 +100,7 @@ export interface RideSettings {
   units: Units
   clock12: boolean
   theme: ThemeChoice
+  lang: Lang
   fenders: boolean
   lights: boolean
   ebike: boolean

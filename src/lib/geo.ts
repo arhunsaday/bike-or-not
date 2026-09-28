@@ -62,10 +62,9 @@ export function midpoint(a: LatLon, b: LatLon): LatLon {
   return { lat: toDeg(φ3), lon: norm360(toDeg(λ3) + 180) - 180 }
 }
 
-const POINTS = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE',
-                'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'] as const
-
-export const compassPoint = (deg: number) => POINTS[Math.round(norm360(deg) / 22.5) % 16]
+/** `points` is a sixteen-point compass, clockwise from north, in the rider's language. */
+export const compassPoint = (deg: number, points: readonly string[]) =>
+  points[Math.round(norm360(deg) / 22.5) % 16]
 
 export const reciprocal = (deg: number) => norm360(deg + 180)
 

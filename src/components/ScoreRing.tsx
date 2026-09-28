@@ -1,3 +1,4 @@
+import { useT } from '@/i18n'
 import { scoreColor } from '@/lib/units'
 
 const R = 56
@@ -10,11 +11,12 @@ const C = 2 * Math.PI * R
  * ring — the two things this component exists to communicate.
  */
 export function ScoreRing({ score }: { score: number }) {
+  const t = useT()
   const colour = scoreColor(score)
   return (
     <div className="relative aspect-square w-[clamp(6.5rem,22vw,9.4rem)] shrink-0">
       <svg viewBox="0 0 132 132" className="size-full overflow-visible" role="img"
-           aria-label={`Bikeability ${score} out of 100`}>
+           aria-label={t.ring.label(score)}>
         <circle cx="66" cy="66" r={R} fill="none" stroke="var(--line)" strokeWidth="9" />
         <circle
           className="ring-sweep"
@@ -34,7 +36,7 @@ export function ScoreRing({ score }: { score: number }) {
               style={{ fontVariationSettings: "'wdth' 108" }}>
           {score}
         </span>
-        <span className="text-[0.58rem] uppercase tracking-[0.14em] text-ink-3 sm:text-[0.63rem]">bikeability</span>
+        <span className="text-[0.58rem] uppercase tracking-[0.14em] text-ink-3 sm:text-[0.63rem]">{t.ring.caption}</span>
       </div>
     </div>
   )

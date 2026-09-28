@@ -1,6 +1,7 @@
 import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip as RTooltip, XAxis, YAxis } from 'recharts'
 import { useMemo } from 'react'
-import { dayLabel, fmtClock, hourOf, isoAt, toHHMM } from '@/lib/time'
+import { useT } from '@/i18n'
+import { addDays, dayLabel, fmtClock, hourOf, isoAt, toHHMM } from '@/lib/time'
 import { fmtTemp, scoreColor } from '@/lib/units'
 import { weatherIcon, weatherInfo } from '@/lib/weather-codes'
 import {
@@ -30,6 +31,8 @@ interface Props {
 }
 
 export function RideWindow({ model, commute, settings, geo, consensusMap }: Props) {
+  const t = useT()
+  const rw = t.rideWindow
   const isToday = commute.date === model.today
   const nowKey = model.now.slice(0, 13)
 
@@ -49,7 +52,7 @@ export function RideWindow({ model, commute, settings, geo, consensusMap }: Prop
       const isNow = isToday && i === 0
       return [{
         iso,
-        label: isNow ? 'now' : fmtClock(`${iso.slice(11, 13)}:00`, settings.clock12),
+        label: isNow ? rw.now : fmtClock(`${iso.slice(11, 13)}:00`, settings.clock12),
         score: leg.score,
         colour: scoreColor(leg.score),
         temp: rec.temp,
@@ -59,32 +62,31 @@ export function RideWindow({ model, commute, settings, geo, consensusMap }: Prop
         isNow,
       }]
     })
-  }, [model, commute, settings, geo, consensusMap, isToday, nowKey])
+  }, [model, commute, settings, geo, consensusMap, isToday, nowKey, rw])
 
   const note = useMemo(() => {
     const curve = dayCurve(model, commute.date, settings, geo, consensusMap)
       .filter((c) => !isToday || c.iso.slice(0, 13) >= nowKey)
-    if (!curve.length) return 'Scored hour by hour.'
+    if (!curve.length) return rw.hourly
 
     const win = bestWindow(curve, { from: isToday ? hourOf(model.now) : 5, to: 23 })
-    const label = dayLabel(commute.date, model.today, true)
-    const when = isToday ? 'left today' : label === 'Tomorrow' ? 'tomorrow' : `on ${label}`
+    const when = isToday ? rw.whenToday
+      : commute.date === addDays(model.today, 1) ? rw.whenTomorrow
+        : rw.whenDay(dayLabel(commute.date, model.today, settings.lang, true))
 
     if (!win || win.avg < 45) {
-      return isToday
-        ? 'Nothing good left today — check tomorrow morning.'
-        : `No good window ${when}.`
+      return isToday ? rw.nothingToday : rw.noWindow(when)
     }
     const from = fmtClock(toHHMM(win.start), settings.clock12)
-    const to = win.end >= 23 ? 'midnight' : fmtClock(toHHMM(win.end + 1), settings.clock12)
+    const to = win.end >= 23 ? rw.midnight : fmtClock(toHHMM(win.end + 1), settings.clock12)
     return win.n === 1
-      ? `Best hour ${when}: around ${from} (${win.avg}/100).`
-      : `Best stretch ${when}: ${from}–${to}, averaging ${win.avg}/100.`
-  }, [model, commute.date, settings, geo, consensusMap, isToday, nowKey])
+      ? rw.bestHour(when, from, win.avg)
+      : rw.bestStretch(when, from, to, win.avg)
+  }, [model, commute.date, settings, geo, consensusMap, isToday, nowKey, rw])
 
   return (
     <Card>
-      <CardHead title="Ride window" note={note} />
+      <CardHead title={rw.title} note={note} />
 
       <div className="no-scrollbar -mx-1 overflow-x-auto px-1">
         {/* Narrower bars on a phone: 42px each meant only eight of the next
@@ -109,13 +111,13 @@ export function RideWindow({ model, commute, settings, geo, consensusMap }: Prop
                 content={({ active, payload }) => {
                   if (!active || !payload?.length) return null
                   const r = payload[0].payload as Row
-                  const info = weatherInfo(r.code)
+                  const info = weatherInfo(r.code, t)
                   const Icon = weatherIcon(info.group, r.isDay)
                   return (
                     <div className="rounded-xl border border-line bg-bg/95 px-3 py-2 shadow-xl backdrop-blur-xl">
                       <p className="flex items-center gap-1.5 text-[0.8rem] font-semibold">
                         <Icon size={14} className="text-ink-3" />
-                        {r.label === 'now' ? 'Right now' : r.label}
+                        {r.isNow ? rw.rightNow : r.label}
                       </p>
                       <p className="mt-0.5 text-[0.76rem] text-ink-3">
                         {info.label} · {fmtTemp(r.temp, settings.units)}
@@ -148,10 +150,10 @@ export function RideWindow({ model, commute, settings, geo, consensusMap }: Prop
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-line-soft pt-3 text-[0.76rem] text-ink-3">
-        <Legend colour="#e11d48" label="don't" />
-        <Legend colour="#facc15" label="marginal" />
-        <Legend colour="#34d399" label="go" />
-        <span className="sm:ml-auto">Outlined bars are your commute hours. Bars are scored for your outbound direction.</span>
+        <Legend colour="#e11d48" label={rw.dont} />
+        <Legend colour="#facc15" label={rw.marginal} />
+        <Legend colour="#34d399" label={rw.go} />
+        <span className="sm:ml-auto">{rw.legend}</span>
       </div>
     </Card>
   )

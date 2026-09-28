@@ -13,6 +13,7 @@ import {
   Wind,
 } from "lucide-react";
 import type { ReactNode } from "react";
+import { useT } from "@/i18n";
 import { cn } from "@/lib/cn";
 import { compassPoint } from "@/lib/geo";
 import { dayLabel, fmtClock } from "@/lib/time";
@@ -55,14 +56,16 @@ export function VerdictCard({
   day,
   confidence,
 }: Props) {
-  const v = verdict(commute.combined, commute.blockers, topFactor(commute));
+  const t = useT();
+  const vc = t.verdictCard;
+  const v = verdict(commute.combined, settings.lang, commute.blockers, topFactor(commute));
   const colour = scoreColor(commute.combined);
   const out = commute.out.rec;
-  const info = weatherInfo(out.code);
+  const info = weatherInfo(out.code, t);
   const WeatherIcon = weatherIcon(info.group, out.isDay);
   const sun = out.isDay
-    ? { Icon: Sunset, label: "Sunset", at: day?.sunset }
-    : { Icon: Sunrise, label: "Sunrise", at: day?.sunrise };
+    ? { Icon: Sunset, label: vc.sunset, at: day?.sunset }
+    : { Icon: Sunrise, label: vc.sunrise, at: day?.sunrise };
 
   const fastest = Math.min(commute.out.minutes, commute.back.minutes);
   const slowest = Math.max(commute.out.minutes, commute.back.minutes);
@@ -83,7 +86,7 @@ export function VerdictCard({
         <span>{placeLabel}</span>
         <span className="flex items-center gap-2">
           <i className="not-italic opacity-50">·</i>
-          {dayLabel(commute.date, model.today, true)}
+          {dayLabel(commute.date, model.today, settings.lang, true)}
         </span>
       </p>
 
@@ -113,15 +116,13 @@ export function VerdictCard({
           {fmtClock(settings.backTime, settings.clock12)}
         </Chip>
         <Chip icon={<Bike size={14} />}>
-          {fastest === slowest
-            ? `${fastest} min`
-            : `${fastest}–${slowest} min`}
+          {vc.minutes(fastest, slowest)}
           {" · "}
-          {fmtDist(geo.distanceKm, settings.units)}
+          {fmtDist(geo.distanceKm, settings.units, settings.lang)}
         </Chip>
         {geo.ascentM >= 15 && (
           <Chip icon={<Mountain size={14} />}>
-            {fmtElevation(geo.ascentM, settings.units)} of climbing
+            {vc.climbing(fmtElevation(geo.ascentM, settings.units))}
           </Chip>
         )}
         {confidence && (
@@ -153,38 +154,38 @@ export function VerdictCard({
         />
         <Condition
           Icon={Thermometer}
-          k="On the bike"
+          k={vc.onTheBike}
           v={fmtTemp(commute.out.feel, settings.units)}
-          sub={`at ${settings.speedKmh} km/h`}
+          sub={vc.atSpeed(fmtSpeed(settings.speedKmh, settings.units))}
         />
         <Condition
           Icon={Wind}
-          k="Wind"
+          k={vc.wind}
           v={fmtSpeed(out.wind, settings.units)}
-          sub={`${compassPoint(out.windDir)}${out.gust > out.wind + 8 ? ` · gusts ${Math.round(out.gust)}` : ""}`}
+          sub={`${compassPoint(out.windDir, t.compass)}${out.gust > out.wind + 8 ? ` · ${vc.gusts(Math.round(out.gust))}` : ""}`}
         />
         <Condition
           Icon={Droplets}
-          k="Rain chance"
+          k={vc.rainChance}
           v={`${Math.round(out.precipProb)}%`}
-          sub={`${out.precip.toFixed(1)} mm/h forecast`}
+          sub={vc.rainForecast(out.precip)}
         />
         {/* Say when there is no air-quality forecast rather than quietly
             swapping in a different measurement. */}
         {out.aqi != null ? (
           <Condition
             Icon={Leaf}
-            k="Air quality"
+            k={vc.air}
             v={String(Math.round(out.aqi))}
-            sub={`${out.aqiScale} AQI`}
+            sub={vc.aqi(out.aqiScale)}
           />
         ) : (
-          <Condition Icon={Leaf} k="Air quality" v="–" sub="beyond forecast" />
+          <Condition Icon={Leaf} k={vc.air} v="–" sub={vc.beyondForecast} />
         )}
         <Condition
           Icon={Eye}
-          k="Visibility"
-          v={out.vis != null ? `${(out.vis / 1000).toFixed(0)} km` : "–"}
+          k={vc.visibility}
+          v={out.vis != null ? vc.km(out.vis / 1000) : "–"}
         />
         {sun.at && (
           <Condition

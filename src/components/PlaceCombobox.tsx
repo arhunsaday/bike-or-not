@@ -6,8 +6,10 @@ import { toast } from 'sonner'
 import { usePlaceSearch } from '@/api/queries'
 import { locateMe } from '@/api/open-meteo'
 import { reverseGeocode } from '@/api/geocode'
+import { useT } from '@/i18n'
 import { cn } from '@/lib/cn'
 import type { LatLon, Place } from '@/lib/geo'
+import { useSettings } from '@/store/settings'
 
 interface Props {
   label: string
@@ -24,6 +26,8 @@ interface Props {
 export function PlaceCombobox({
   label, value, onChange, placeholder, icon, allowLocate = false, near,
 }: Props) {
+  const t = useT()
+  const lang = useSettings((s) => s.lang)
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [locating, setLocating] = useState(false)
@@ -33,16 +37,16 @@ export function PlaceCombobox({
     setLocating(true)
     try {
       const point = await locateMe()
-      const found = await reverseGeocode(point)
+      const found = await reverseGeocode(point, lang)
       onChange(found ?? {
         id: `geo:${point.lat.toFixed(3)},${point.lon.toFixed(3)}`,
-        name: 'My location',
+        name: t.place.myLocation,
         context: `${point.lat.toFixed(3)}, ${point.lon.toFixed(3)}`,
         ...point,
       })
       setOpen(false)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Could not get your location')
+      toast.error(err instanceof Error ? err.message : t.place.locateFailed)
     } finally {
       setLocating(false)
     }
@@ -70,7 +74,7 @@ export function PlaceCombobox({
               <span
                 role="button"
                 tabIndex={0}
-                aria-label={`Clear ${label}`}
+                aria-label={t.place.clear(label)}
                 onClick={(e) => { e.stopPropagation(); onChange(null) }}
                 onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); onChange(null) } }}
                 className="rounded-md p-0.5 text-ink-3 transition hover:text-ink"
@@ -96,7 +100,7 @@ export function PlaceCombobox({
                   autoFocus
                   value={query}
                   onValueChange={setQuery}
-                  placeholder="Street address, town or landmark…"
+                  placeholder={t.place.searchPlaceholder}
                   className="w-full bg-transparent py-3 text-[0.9rem] outline-none placeholder:text-ink-3"
                 />
               </div>
@@ -109,19 +113,19 @@ export function PlaceCombobox({
                     className="flex cursor-pointer items-center gap-2 rounded-xl px-2.5 py-2 text-[0.88rem] data-[selected=true]:bg-card"
                   >
                     <LocateFixed size={15} className="text-verdict" />
-                    {locating ? 'Finding you…' : 'Use my current location'}
+                    {locating ? t.place.locating : t.place.useLocation}
                   </Command.Item>
                 )}
 
                 {query.trim().length < 2 ? (
                   <p className="px-2.5 py-3 text-[0.82rem] text-ink-3">
-                    Type at least two letters — a street address works.
+                    {t.place.typeMore}
                   </p>
                 ) : isFetching && results.length === 0 ? (
-                  <p className="px-2.5 py-3 text-[0.82rem] text-ink-3">Searching…</p>
+                  <p className="px-2.5 py-3 text-[0.82rem] text-ink-3">{t.place.searching}</p>
                 ) : (
                   <Command.Empty className="px-2.5 py-3 text-[0.82rem] text-ink-3">
-                    Nothing found for “{query.trim()}”.
+                    {t.place.nothingFound(query.trim())}
                   </Command.Empty>
                 )}
 

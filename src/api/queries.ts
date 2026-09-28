@@ -1,5 +1,6 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import type { LatLon } from '@/lib/geo'
+import { useSettings } from '@/store/settings'
 import { fetchConditions, fetchConsensus, fetchElevations } from './open-meteo'
 import { searchPlaces } from './geocode'
 import { fetchCyclingRoute } from './routing'
@@ -32,9 +33,10 @@ export function useElevations(points: LatLon[]) {
 }
 
 export function usePlaceSearch(query: string, near?: LatLon | null) {
+  const lang = useSettings((s) => s.lang)
   return useQuery({
-    queryKey: ['places', query.trim(), near && key(near)],
-    queryFn: ({ signal }) => searchPlaces(query, near, signal),
+    queryKey: ['places', lang, query.trim(), near && key(near)],
+    queryFn: ({ signal }) => searchPlaces(query, lang, near, signal),
     enabled: query.trim().length >= 2,
     staleTime: 30 * 60 * 1000,
     placeholderData: keepPreviousData,

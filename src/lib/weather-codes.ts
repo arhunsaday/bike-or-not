@@ -2,46 +2,50 @@ import {
   Cloud, CloudDrizzle, CloudFog, CloudLightning, CloudMoon, CloudRain, CloudSnow,
   CloudSun, Moon, Sun, type LucideIcon,
 } from 'lucide-react'
+import type { Messages } from '@/i18n'
 
 export type ConditionGroup =
   | 'clear' | 'partly' | 'cloudy' | 'fog' | 'drizzle'
   | 'rain' | 'showers' | 'snow' | 'freezing' | 'storm'
 
-const WMO: Record<number, [string, ConditionGroup]> = {
-  0: ['Clear sky', 'clear'],
-  1: ['Mainly clear', 'clear'],
-  2: ['Partly cloudy', 'partly'],
-  3: ['Overcast', 'cloudy'],
-  45: ['Fog', 'fog'],
-  48: ['Freezing fog', 'fog'],
-  51: ['Light drizzle', 'drizzle'],
-  53: ['Drizzle', 'drizzle'],
-  55: ['Heavy drizzle', 'drizzle'],
-  56: ['Freezing drizzle', 'freezing'],
-  57: ['Freezing drizzle', 'freezing'],
-  61: ['Light rain', 'rain'],
-  63: ['Rain', 'rain'],
-  65: ['Heavy rain', 'rain'],
-  66: ['Freezing rain', 'freezing'],
-  67: ['Freezing rain', 'freezing'],
-  71: ['Light snow', 'snow'],
-  73: ['Snow', 'snow'],
-  75: ['Heavy snow', 'snow'],
-  77: ['Snow grains', 'snow'],
-  80: ['Light showers', 'showers'],
-  81: ['Showers', 'showers'],
-  82: ['Violent showers', 'showers'],
-  85: ['Snow showers', 'snow'],
-  86: ['Heavy snow showers', 'snow'],
-  95: ['Thunderstorm', 'storm'],
-  96: ['Storm with hail', 'storm'],
-  99: ['Severe storm', 'storm'],
+/** Condition names live in the i18n messages, keyed by the same WMO code. */
+const WMO: Record<number, ConditionGroup> = {
+  0: 'clear',
+  1: 'clear',
+  2: 'partly',
+  3: 'cloudy',
+  45: 'fog',
+  48: 'fog',
+  51: 'drizzle',
+  53: 'drizzle',
+  55: 'drizzle',
+  56: 'freezing',
+  57: 'freezing',
+  61: 'rain',
+  63: 'rain',
+  65: 'rain',
+  66: 'freezing',
+  67: 'freezing',
+  71: 'snow',
+  73: 'snow',
+  75: 'snow',
+  77: 'snow',
+  80: 'showers',
+  81: 'showers',
+  82: 'showers',
+  85: 'snow',
+  86: 'snow',
+  95: 'storm',
+  96: 'storm',
+  99: 'storm',
 }
 
-export function weatherInfo(code: number) {
-  const [label, group] = WMO[code] ?? ['Unknown', 'cloudy' as ConditionGroup]
-  return { label, group, code }
+export function weatherInfo(code: number, m: Messages) {
+  const group = WMO[code] ?? 'cloudy'
+  return { label: m.weather[code] ?? m.weatherUnknown, group, code }
 }
+
+export const weatherGroup = (code: number): ConditionGroup => WMO[code] ?? 'cloudy'
 
 export function weatherIcon(group: ConditionGroup, isDay = true): LucideIcon {
   switch (group) {

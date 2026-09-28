@@ -1,6 +1,7 @@
 /* Open-Meteo clients. No API key, no account, generous free tier. */
 
 import type { z } from 'zod'
+import type { Lang } from '@/i18n/detect'
 import type { LatLon, Place } from '@/lib/geo'
 import {
   AirQualitySchema, ConsensusSchema, ElevationSchema, ForecastSchema, GeocodeSchema,
@@ -96,11 +97,12 @@ export async function fetchElevations(points: LatLon[], signal?: AbortSignal) {
 /** Town-level fallback for when Photon is unreachable. See api/geocode.ts. */
 export async function searchPlacesOpenMeteo(
   query: string,
+  lang: Lang,
   signal?: AbortSignal,
 ): Promise<Place[]> {
   if (query.trim().length < 2) return []
   const body = await getJSON(GEO, {
-    name: query.trim(), count: 8, language: 'en', format: 'json',
+    name: query.trim(), count: 8, language: lang, format: 'json',
   }, GeocodeSchema, signal)
 
   return (body.results ?? []).map((r) => ({

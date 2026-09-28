@@ -97,8 +97,8 @@ export function useCommute(activeDate: string | null) {
 
   const confidence = useMemo(() => {
     if (!consensusMap || !commute) return null
-    return commuteConfidence(consensusMap, [commute.out.iso, commute.back.iso])
-  }, [consensusMap, commute])
+    return commuteConfidence(consensusMap, [commute.out.iso, commute.back.iso], settings.lang)
+  }, [consensusMap, commute, settings.lang])
 
   const week = useMemo(
     () => (model ? weekOutlook(model, settings, geo, consensusMap) : []),

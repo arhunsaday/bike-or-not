@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { clamp } from '@/lib/units'
-import { isSnowy, isWet, weatherInfo } from '@/lib/weather-codes'
+import { isSnowy, isWet, weatherGroup } from '@/lib/weather-codes'
 import type { HourRecord } from '@/model/types'
 
 interface Drop { x: number; y: number; z: number; w: number }
@@ -26,7 +26,7 @@ export function Precipitation({ rec }: { rec: HourRecord | null }) {
 
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
 
-    const { group } = weatherInfo(rec.code)
+    const group = weatherGroup(rec.code)
     const snow = isSnowy(group)
     const rain = isWet(group)
     if (!snow && !rain) return

@@ -6,7 +6,8 @@ import { reverseGeocode } from '@/api/geocode'
 import { locateMe } from '@/api/open-meteo'
 import { usePlaceSearch } from '@/api/queries'
 import type { Place } from '@/lib/geo'
-import { DEMO_POINT, useSettings } from '@/store/settings'
+import { useT } from '@/i18n'
+import { useSettings } from '@/store/settings'
 import { Dialog } from './ui/Dialog'
 
 /**
@@ -15,6 +16,8 @@ import { Dialog } from './ui/Dialog'
  * they notice a toast.
  */
 export function LocationPrompt({ open }: { open: boolean }) {
+  const t = useT()
+  const lang = useSettings((s) => s.lang)
   const setEndpoint = useSettings((s) => s.setEndpoint)
   const markAsked = useSettings((s) => s.markLocationAsked)
 
@@ -31,16 +34,16 @@ export function LocationPrompt({ open }: { open: boolean }) {
     setLocating(true)
     try {
       const point = await locateMe()
-      const found = await reverseGeocode(point)
+      const found = await reverseGeocode(point, lang)
       choose(found ?? {
         id: `geo:${point.lat.toFixed(3)},${point.lon.toFixed(3)}`,
-        name: 'My location',
+        name: t.place.myLocation,
         context: `${point.lat.toFixed(3)}, ${point.lon.toFixed(3)}`,
         ...point,
       })
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Could not get your location', {
-        description: 'Search for your town or street instead.',
+      toast.error(err instanceof Error ? err.message : t.place.locateFailed, {
+        description: t.firstRun.searchInstead,
       })
     } finally {
       setLocating(false)
@@ -52,8 +55,8 @@ export function LocationPrompt({ open }: { open: boolean }) {
       open={open}
       // Dismissing without choosing is allowed, but it still counts as asked.
       onOpenChange={(next) => { if (!next) markAsked() }}
-      title="Where do you ride?"
-      description="Every score here is built around your own commute."
+      title={t.firstRun.title}
+      description={t.firstRun.description}
     >
       <div className="flex flex-col gap-5">
         <button
@@ -63,12 +66,12 @@ export function LocationPrompt({ open }: { open: boolean }) {
           className="flex min-h-12 items-center justify-center gap-2.5 rounded-2xl border border-verdict/40 bg-verdict/10 px-4 py-3 text-[0.95rem] font-semibold text-verdict transition hover:bg-verdict/15 disabled:opacity-60"
         >
           <LocateFixed size={18} />
-          {locating ? 'Finding you…' : 'Use my current location'}
+          {locating ? t.place.locating : t.place.useLocation}
         </button>
 
         <div className="flex items-center gap-3 text-[0.75rem] uppercase tracking-[0.12em] text-ink-3">
           <span className="h-px flex-1 bg-line" />
-          or search
+          {t.firstRun.orSearch}
           <span className="h-px flex-1 bg-line" />
         </div>
 
@@ -79,7 +82,7 @@ export function LocationPrompt({ open }: { open: boolean }) {
               autoFocus
               value={query}
               onValueChange={setQuery}
-              placeholder="Your town, or a street address"
+              placeholder={t.firstRun.placeholder}
               className="w-full bg-transparent py-3 text-[0.95rem] outline-none placeholder:text-ink-3"
             />
           </div>
@@ -87,13 +90,13 @@ export function LocationPrompt({ open }: { open: boolean }) {
           <Command.List className="mt-1.5 max-h-56 overflow-y-auto">
             {query.trim().length < 2 ? (
               <p className="px-1 py-3 text-[0.83rem] text-ink-3">
-                Two letters is enough to start.
+                {t.firstRun.typeMore}
               </p>
             ) : isFetching && results.length === 0 ? (
-              <p className="px-1 py-3 text-[0.83rem] text-ink-3">Searching…</p>
+              <p className="px-1 py-3 text-[0.83rem] text-ink-3">{t.place.searching}</p>
             ) : (
               <Command.Empty className="px-1 py-3 text-[0.83rem] text-ink-3">
-                Nothing found for “{query.trim()}”.
+                {t.place.nothingFound(query.trim())}
               </Command.Empty>
             )}
 
@@ -124,7 +127,7 @@ export function LocationPrompt({ open }: { open: boolean }) {
           className="flex items-center justify-center gap-2 self-center rounded-full px-3 py-2 text-[0.83rem] text-ink-3 transition hover:text-ink"
         >
           <Bike size={14} />
-          Just show me {DEMO_POINT.label} for now
+          {t.firstRun.demo(t.demoCity)}
         </button>
       </div>
     </Dialog>

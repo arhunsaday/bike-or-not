@@ -1,4 +1,5 @@
 import { CloudRain, Umbrella } from 'lucide-react'
+import { useT } from '@/i18n'
 import { clamp } from '@/lib/units'
 import type { Nowcast } from '@/model/nowcast'
 
@@ -7,14 +8,15 @@ import type { Nowcast } from '@/model/nowcast'
  * something to say — a dry afternoon does not need a banner about it.
  */
 export function NowcastBanner({ nowcast }: { nowcast: Nowcast }) {
+  const t = useT().nowcast
   const { rainingNow, startsInMin, stopsInMin, steps, peakMm } = nowcast
   if (!rainingNow && startsInMin == null) return null
 
   const headline = rainingNow
     ? stopsInMin != null
-      ? `Raining now — easing in about ${round5(stopsInMin)} minutes`
-      : 'Raining now, and not letting up within the hour'
-    : `Rain starting in about ${round5(startsInMin!)} minutes`
+      ? t.rainingEasing(round5(stopsInMin))
+      : t.rainingSteady
+    : t.starting(round5(startsInMin!))
 
   return (
     <div className="glass card-sheen flex flex-col gap-3 rounded-card border-amber-400/25 p-4 sm:flex-row sm:items-center sm:gap-5 sm:p-5">
@@ -27,7 +29,7 @@ export function NowcastBanner({ nowcast }: { nowcast: Nowcast }) {
             {headline}
           </b>
           <span className="text-[0.78rem] text-ink-3">
-            Radar nowcast · peak {peakMm.toFixed(1)} mm/h
+            {t.source(peakMm)}
           </span>
         </div>
       </div>
@@ -44,7 +46,7 @@ export function NowcastBanner({ nowcast }: { nowcast: Nowcast }) {
               />
             </span>
             <span className="h-3 text-[0.6rem] leading-3 text-ink-3">
-              {i % 2 === 0 ? (s.minutes <= 0 ? 'now' : `+${s.minutes}`) : ''}
+              {i % 2 === 0 ? (s.minutes <= 0 ? t.now : `+${s.minutes}`) : ''}
             </span>
           </span>
         ))}

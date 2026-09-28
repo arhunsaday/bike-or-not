@@ -12,6 +12,7 @@
  */
 
 import { z } from 'zod'
+import type { Lang } from '@/i18n/detect'
 import type { LatLon, Place } from '@/lib/geo'
 import { searchPlacesOpenMeteo } from './open-meteo'
 
@@ -75,6 +76,7 @@ async function photon(path: string, params: Record<string, string | number>, sig
  */
 export async function searchPlaces(
   query: string,
+  lang: Lang,
   near?: LatLon | null,
   signal?: AbortSignal,
 ): Promise<Place[]> {
@@ -85,7 +87,7 @@ export async function searchPlaces(
     const body = await photon('/api/', {
       q,
       limit: 8,
-      lang: 'en',
+      lang,
       ...(near ? { lat: near.lat.toFixed(4), lon: near.lon.toFixed(4) } : {}),
     }, signal)
     // OSM often holds the same address as several objects (a node and a way,
@@ -102,16 +104,18 @@ export async function searchPlaces(
     if (err instanceof DOMException && err.name === 'AbortError') throw err
     // fall through to the town-level geocoder
   }
-  return searchPlacesOpenMeteo(q, signal)
+  return searchPlacesOpenMeteo(q, lang, signal)
 }
 
 /** Coordinates → the nearest named thing. Used by "use my current location". */
-export async function reverseGeocode(point: LatLon, signal?: AbortSignal): Promise<Place | null> {
+export async function reverseGeocode(
+  point: LatLon, lang: Lang, signal?: AbortSignal,
+): Promise<Place | null> {
   try {
     const body = await photon('/reverse', {
       lat: point.lat.toFixed(5),
       lon: point.lon.toFixed(5),
-      lang: 'en',
+      lang,
       limit: 1,
     }, signal)
     const first = body.features[0]

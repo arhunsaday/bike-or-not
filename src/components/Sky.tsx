@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { skyPalette, weatherInfo } from '@/lib/weather-codes'
+import { skyPalette, weatherGroup } from '@/lib/weather-codes'
 import type { HourRecord } from '@/model/types'
 
 /**
@@ -14,7 +14,7 @@ export function Sky({ rec, dark, accent }: { rec: HourRecord | null; dark: boole
 
   useEffect(() => {
     if (!rec) return
-    const { group } = weatherInfo(rec.code)
+    const group = weatherGroup(rec.code)
     const [a, b, c] = skyPalette(group, rec.isDay, dark)
     const root = document.documentElement.style
     root.setProperty('--sky-1', a)

@@ -1,4 +1,5 @@
 import { ArrowLeft, ArrowRight, Clock } from 'lucide-react'
+import { useT } from '@/i18n'
 import { compassPoint } from '@/lib/geo'
 import { fmtClock } from '@/lib/time'
 import { fmtSpeed, scoreColor } from '@/lib/units'
@@ -20,6 +21,7 @@ interface Props {
 }
 
 export function LegCard({ model, commute, which, settings, geo, consensusMap }: Props) {
+  const t = useT()
   const out = which === 'out'
   const leg: LegScore = out ? commute.out : commute.back
   const bearing = legBearing(geo, which)
@@ -43,10 +45,10 @@ export function LegCard({ model, commute, which, settings, geo, consensusMap }: 
         </span>
         <div className="flex flex-col">
           <b className="text-[0.95rem] font-semibold tracking-tight">
-            {out ? 'Out' : 'Back'} · {fmtClock(time, settings.clock12)}
+            {out ? t.leg.out : t.leg.back} · {fmtClock(time, settings.clock12)}
           </b>
           <span className="text-[0.79rem] text-ink-3">
-            {out ? 'to work' : 'home again'} · ≈{leg.minutes} min
+            {out ? t.leg.toWork : t.leg.homeAgain} · ≈{leg.minutes} min
           </span>
         </div>
         <span
@@ -67,15 +69,15 @@ export function LegCard({ model, commute, which, settings, geo, consensusMap }: 
             {w.unknown ? (
               <>
                 <b className="font-semibold text-ink">{fmtSpeed(leg.rec.wind, settings.units)}</b>{' '}
-                from the {compassPoint(leg.rec.windDir)} — add a destination to split it
+                {t.leg.fromDir(compassPoint(leg.rec.windDir, t.compass))} — {t.leg.splitHint}
               </>
             ) : (
               <>
                 <b className="font-semibold text-ink">
-                  {fmtSpeed(magnitude, settings.units)} {kind}
+                  {t.leg.windOf(fmtSpeed(magnitude, settings.units), t.leg.kind[kind])}
                 </b>{' '}
-                from the {compassPoint(leg.rec.windDir)}
-                {w.cross > 12 && kind !== 'crosswind' && `, ${Math.round(w.cross)} across`}
+                {t.leg.fromDir(compassPoint(leg.rec.windDir, t.compass))}
+                {w.cross > 12 && kind !== 'crosswind' && t.leg.across(Math.round(w.cross))}
               </>
             )}
           </p>
@@ -87,13 +89,12 @@ export function LegCard({ model, commute, which, settings, geo, consensusMap }: 
         <p className="flex items-start gap-2 rounded-xl border border-line-soft bg-card-2 px-3 py-2.5 text-[0.82rem] text-ink-2">
           <Clock size={15} className="mt-0.5 shrink-0 text-verdict" />
           <span>
-            Leave {Math.abs(shift.delta) === 1 ? 'an hour' : `${Math.abs(shift.delta)} hours`}{' '}
-            {shift.delta < 0 ? 'earlier' : 'later'}, at{' '}
+            {t.leg.shiftLead(shift.delta)}
             <b className="font-semibold text-ink">
               {fmtClock(toHHMM(Number(shift.iso.slice(11, 13))), settings.clock12)}
             </b>
-            , and this leg scores <b className="font-semibold text-ink">{shift.score}</b> —{' '}
-            {shift.gain} points better.
+            {t.leg.shiftMid}<b className="font-semibold text-ink">{shift.score}</b>
+            {t.leg.shiftTail(shift.gain)}
           </span>
         </p>
       )}
