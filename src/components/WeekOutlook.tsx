@@ -1,3 +1,4 @@
+import { useT } from '@/i18n'
 import { dayLabel } from '@/lib/time'
 import { fmtTemp, scoreColor } from '@/lib/units'
 import { weatherIcon, weatherInfo } from '@/lib/weather-codes'
@@ -14,17 +15,19 @@ interface Props {
 }
 
 export function WeekOutlook({ model, week, settings, activeDate, onPick }: Props) {
+  const t = useT()
+  const { lang } = settings
+
   // Air-quality models run out well before the weather forecast does; days
   // past that point are scored without an air term, and should say so.
   const lastScored = week[week.length - 1]?.date
   const airNote = model.airUntil && lastScored && model.airUntil < lastScored
-    ? `Air quality is only forecast to ${dayLabel(model.airUntil, model.today, true)} —`
-      + ' later days are scored without it.'
+    ? t.week.airUntil(dayLabel(model.airUntil, model.today, lang, true))
     : null
 
   return (
     <Card>
-      <CardHead title="Week ahead" note="Scored for your commute hours, both legs." />
+      <CardHead title={t.week.title} note={t.week.note} />
       {airNote && <p className="-mt-2 mb-3 text-[0.78rem] text-ink-3">{airNote}</p>}
 
       {/* Seven days never divide evenly into a phone-width grid — three
@@ -34,7 +37,7 @@ export function WeekOutlook({ model, week, settings, activeDate, onPick }: Props
         {week.map((day) => {
           const c = day.commute
           const colour = scoreColor(c.combined)
-          const info = weatherInfo(day.code)
+          const info = weatherInfo(day.code, t)
           const Icon = weatherIcon(info.group, true)
           const active = day.date === activeDate
 
@@ -48,7 +51,7 @@ export function WeekOutlook({ model, week, settings, activeDate, onPick }: Props
                 style={{ borderColor: active ? colour : 'var(--line-soft)' }}
               >
                 <span className="text-[0.72rem] uppercase tracking-[0.06em] text-ink-3">
-                  {dayLabel(day.date, model.today)}
+                  {dayLabel(day.date, model.today, lang)}
                 </span>
                 <Icon size={22} className="text-ink-2" />
                 <span
@@ -66,7 +69,7 @@ export function WeekOutlook({ model, week, settings, activeDate, onPick }: Props
                   {' / '}{fmtTemp(day.tmin, settings.units)}
                 </span>
                 <span className="whitespace-nowrap rounded-full bg-card px-2 py-0.5 text-[0.68rem] text-ink-2">
-                  {verdict(c.combined, c.blockers).word}
+                  {verdict(c.combined, lang, c.blockers).short}
                 </span>
               </button>
             </li>

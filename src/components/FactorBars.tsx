@@ -1,5 +1,6 @@
 import { clamp, scoreColor } from '@/lib/units'
 import type { LegScore } from '@/model/types'
+import { useT } from '@/i18n'
 import { Tooltip } from './ui/Tooltip'
 
 function Bar({ label, pct, colour, value, note }: {
@@ -23,12 +24,13 @@ function Bar({ label, pct, colour, value, note }: {
 }
 
 export function FactorBars({ leg }: { leg: LegScore }) {
+  const t = useT()
   const against = leg.factors.filter((f) => f.points > 0).slice(0, 3)
   const bonus = leg.factors.find((f) => f.points < 0)
 
   return (
     <div className="flex flex-col gap-1.5">
-      {against.length === 0 && <Bar label="Clear" pct={100} value="nothing against you" />}
+      {against.length === 0 && <Bar label={t.factors.clear} pct={100} value={t.factors.nothingAgainst} />}
       {against.map((f) => (
         <Bar
           key={f.key}

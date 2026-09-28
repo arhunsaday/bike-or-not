@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { detectLang } from '@/i18n/detect'
 import type { Place } from '@/lib/geo'
 import type { RideSettings } from '@/model/types'
 
@@ -15,13 +16,15 @@ export const DEFAULTS: RideSettings = {
   units: 'metric',
   clock12: false,
   theme: 'auto',
+  // Picked up once from the browser; after that it is the rider's choice.
+  lang: detectLang(),
   fenders: true,
   lights: true,
   ebike: false,
 }
 
 /** Somewhere to point the camera until the rider tells us where they ride. */
-export const DEMO_POINT = { lat: 55.6759, lon: 12.5655, label: 'Copenhagen' }
+export const DEMO_POINT = { lat: 55.6759, lon: 12.5655 }
 
 export interface SavedRoute {
   id: string

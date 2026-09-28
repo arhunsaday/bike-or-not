@@ -14,6 +14,7 @@
  */
 
 import type { AirQuality, Forecast } from '@/api/schemas'
+import { messages, type Lang } from '@/i18n'
 import { reciprocal, windAlongRoute, windComponents, type RouteSegment } from '@/lib/geo'
 import { dayOf, hourOf, isoAt, parseHHMM } from '@/lib/time'
 import { clamp } from '@/lib/units'
@@ -167,6 +168,7 @@ export function scoreHour(
   consensus?: ConsensusMap,
 ): LegScore {
   const P = PROFILES[s.profile]
+  const m = messages(s.lang).score
   const back = direction === 'back'
 
   // With a real route the wind is resolved segment by segment; without one we
@@ -195,12 +197,12 @@ export function scoreHour(
   /* temperature */
   const [lo, hi] = P.band
   if (feel < lo) {
-    add('cold', 'Cold', clamp((lo - feel) ** 1.25 * 1.5 / P.cold, 0, 42),
-      `feels like ${Math.round(feel)}° at ${Math.round(s.speedKmh)} km/h`)
+    add('cold', m.cold, clamp((lo - feel) ** 1.25 * 1.5 / P.cold, 0, 42),
+      m.feelsAtSpeed(Math.round(feel), Math.round(s.speedKmh)))
   } else if (feel > hi) {
     const humid = rec.rh > 70 ? 1.25 : 1
-    add('heat', 'Heat', clamp((feel - hi) ** 1.2 * 1.8 * humid / P.heat, 0, 32),
-      rec.rh > 70 ? `${Math.round(feel)}° and humid` : `feels like ${Math.round(feel)}°`)
+    add('heat', m.heat, clamp((feel - hi) ** 1.2 * 1.8 * humid / P.heat, 0, 32),
+      rec.rh > 70 ? m.humid(Math.round(feel)) : m.feels(Math.round(feel)))
   }
 
   /* precipitation */
@@ -225,15 +227,15 @@ export function scoreHour(
 
   if (wetPts >= 0.5) {
     const note = rec.snow > 0
-      ? `${rec.snow.toFixed(1)} cm of snow`
+      ? m.snowCm(rec.snow)
       : outvoted && agreed
-        ? `${agreed.wetVotes} of ${agreed.models} models say rain`
+        ? m.modelsSayRain(agreed.wetVotes, agreed.models)
         : mm > 0.05
-          ? `${Math.round(prob * 100)}% chance, ${mm.toFixed(1)} mm/h`
-          : `${Math.round(prob * 100)}% chance of rain`
-    add('wet', rec.snow > 0 ? 'Snow' : 'Rain', wetPts, note)
+          ? m.chanceMm(Math.round(prob * 100), mm)
+          : m.chance(Math.round(prob * 100))
+    add('wet', rec.snow > 0 ? m.snow : m.rain, wetPts, note)
   } else if (rec.wet3 > 0.3) {
-    add('damp', 'Wet roads', clamp(rec.wet3 * 2.5, 0, 7), 'recent rain, surfaces still slick')
+    add('damp', m.damp, clamp(rec.wet3 * 2.5, 0, 7), m.dampNote)
   }
 
   /* wind */
@@ -241,64 +243,64 @@ export function scoreHour(
   let windNote = ''
   if (wind.head > 3) {
     windPts += clamp(((wind.head - 3) / 2.6) ** 1.35 * (s.ebike ? 0.5 : 1) / P.wind, 0, 30)
-    windNote = `${Math.round(wind.head)} km/h headwind`
+    windNote = m.headwindNote(Math.round(wind.head))
   } else if (wind.head < -3) {
     windPts -= clamp((-wind.head - 3) * 0.25, 0, 5)
-    windNote = `${Math.round(-wind.head)} km/h tailwind`
+    windNote = m.tailwindNote(Math.round(-wind.head))
   }
   const gustDelta = gustComp.head - wind.head
   if (gustDelta > 12) {
     windPts += clamp((gustDelta - 12) * 0.85 / P.wind, 0, 16)
-    windNote = `gusting to ${Math.round(rec.gust)} km/h`
+    windNote = m.gustNote(Math.round(rec.gust))
   }
   if (wind.cross > 22) {
     windPts += clamp((wind.cross - 22) * 0.55 / P.wind, 0, 12)
-    if (!windNote) windNote = `${Math.round(wind.cross)} km/h crosswind`
+    if (!windNote) windNote = m.crossNote(Math.round(wind.cross))
   }
-  if (windPts > 0) add('wind', 'Wind', windPts, windNote || 'blustery')
-  else if (windPts < 0) add('tailwind', 'Tailwind', windPts, windNote)
+  if (windPts > 0) add('wind', m.wind, windPts, windNote || m.blustery)
+  else if (windPts < 0) add('tailwind', m.tailwind, windPts, windNote)
 
   /* gradient — a rolling route earns both a penalty and a credit */
   if (gradient > 0.4) {
-    add('hill', 'Climb', clamp((gradient - 0.4) ** 1.15 * 6 * (s.ebike ? 0.35 : 1) / P.hill, 0, 18),
-      `${Math.round(ascentM)} m of climbing at ${gradient.toFixed(1)}%`)
+    add('hill', m.climb, clamp((gradient - 0.4) ** 1.15 * 6 * (s.ebike ? 0.35 : 1) / P.hill, 0, 18),
+      m.climbNote(Math.round(ascentM), gradient))
   }
   if (dropGradient > 0.6) {
-    add('descent', 'Descent', -clamp((dropGradient - 0.6) * 2.2, 0, 6),
-      `${Math.round(descentM)} m of free height`)
+    add('descent', m.descent, -clamp((dropGradient - 0.6) * 2.2, 0, 6),
+      m.descentNote(Math.round(descentM)))
   }
 
   /* light and visibility */
   if (!rec.isDay) {
-    add('dark', 'Darkness', s.lights ? 4 : clamp(24 / P.dark, 0, 26),
-      s.lights ? 'dark, but you have lights' : 'dark and you have no lights')
+    add('dark', m.dark, s.lights ? 4 : clamp(24 / P.dark, 0, 26),
+      s.lights ? m.darkLit : m.darkUnlit)
   }
   if (rec.vis != null) {
     const v = rec.vis
     const pts = v < 400 ? 22 : v < 1200 ? 15 : v < 3000 ? 8 : v < 6000 ? 3 : 0
-    if (pts) add('vis', 'Visibility', pts, `only ${(v / 1000).toFixed(1)} km of it`)
+    if (pts) add('vis', m.vis, pts, m.visNote(v / 1000))
   }
 
   /* air and sun */
   if (rec.pm25 != null) {
     const pts = clamp((rec.pm25 - 12) * 0.9, 0, 24)
-    if (pts) add('air', 'Air quality', pts, `PM2.5 ${Math.round(rec.pm25)} µg/m³`)
+    if (pts) add('air', m.air, pts, `PM2.5 ${Math.round(rec.pm25)} µg/m³`)
   }
   if (rec.isDay && rec.uv >= 8) {
-    add('uv', 'UV', clamp((rec.uv - 8) * 2, 0, 8), `UV index ${rec.uv.toFixed(0)}`)
+    add('uv', m.uv, clamp((rec.uv - 8) * 2, 0, 8), m.uvNote(rec.uv))
   }
 
   /* ice */
   const icy = rec.temp <= 1.5 &&
     (rec.wet3 > 0.1 || rec.precip > 0.05 || FREEZING_CODES.has(rec.code))
-  if (icy) add('ice', 'Ice risk', 30, `${rec.temp.toFixed(0)}° with moisture on the road`)
+  if (icy) add('ice', m.ice, 30, m.iceNote(rec.temp))
 
   const blockers: string[] = []
-  if (STORM_CODES.has(rec.code)) blockers.push('Thunderstorms in the area')
-  if (rec.snow >= 1) blockers.push('Heavy snowfall')
-  if (icy && rec.temp <= 0.5) blockers.push('Black-ice conditions')
-  if (rec.gust >= 65) blockers.push(`Dangerous gusts (${Math.round(rec.gust)} km/h)`)
-  if (rec.vis != null && rec.vis < 250) blockers.push('Near-zero visibility')
+  if (STORM_CODES.has(rec.code)) blockers.push(m.storm)
+  if (rec.snow >= 1) blockers.push(m.heavySnow)
+  if (icy && rec.temp <= 0.5) blockers.push(m.blackIce)
+  if (rec.gust >= 65) blockers.push(m.gusts(Math.round(rec.gust)))
+  if (rec.vis != null && rec.vis < 250) blockers.push(m.fog)
 
   const total = factors.reduce((sum, f) => sum + f.points, 0)
   let score = clamp(100 - total, 0, 100)
@@ -357,25 +359,22 @@ export function scoreCommute(
   return { date, out, back, combined, blockers }
 }
 
-const TIERS: [number, string, string][] = [
-  [88, 'Send it', 'Textbook commuting weather'],
-  [72, 'Ride it', 'Nothing out there to stop you'],
-  [56, 'Kit up', 'Rideable with the right layers'],
-  [40, 'Your call', 'Doable, but you will feel it'],
-  [24, 'Rough one', 'Only if you really want to'],
-  [0, 'Not today', 'Take the bus and keep your dignity'],
-]
+/** Lower bound of each verdict tier; the words are in the i18n messages, in the same order. */
+const TIERS = [88, 72, 56, 40, 24, 0]
 
 /**
  * Turn a score plus its worst factor into a headline. Once a factor is worth
  * ten points it gets named even on a good day — "ride it, but it is going to
  * rain" is more use than a compliment about the weather.
  */
-export function verdict(score: number, blockers: string[] = [], top?: Factor) {
-  if (blockers.length) return { word: 'Not today', sub: blockers[0], score }
-  const [, word, fallback] = TIERS.find(([min]) => score >= min)!
-  const sub = top && top.points >= 10 ? `${top.label.toLowerCase()} — ${top.note}` : fallback
-  return { word, sub, score }
+export function verdict(score: number, lang: Lang, blockers: string[] = [], top?: Factor) {
+  const m = messages(lang)
+  const tier = blockers.length ? TIERS.length - 1 : TIERS.findIndex((min) => score >= min)
+  const [word, fallback] = m.tiers[tier]
+  const short = m.tiersShort[tier]
+  if (blockers.length) return { word, short, sub: blockers[0], score }
+  const sub = top && top.points >= 10 ? m.verdictSub(top.label, top.note) : fallback
+  return { word, short, sub, score }
 }
 
 export const topFactor = (c: Commute): Factor | undefined =>

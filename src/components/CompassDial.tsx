@@ -1,4 +1,5 @@
 import { useRef } from 'react'
+import { useT } from '@/i18n'
 import { compassPoint } from '@/lib/geo'
 
 interface Props {
@@ -8,6 +9,7 @@ interface Props {
 
 /** Manual heading, for when you would rather not name your address. */
 export function CompassDial({ bearing, onChange }: Props) {
+  const t = useT()
   const ref = useRef<SVGSVGElement>(null)
   const dragging = useRef(false)
 
@@ -43,7 +45,7 @@ export function CompassDial({ bearing, onChange }: Props) {
         viewBox="0 0 200 200"
         tabIndex={0}
         role="slider"
-        aria-label="Outbound bearing"
+        aria-label={t.compassDial.label}
         aria-valuemin={0}
         aria-valuemax={359}
         aria-valuenow={Math.round(bearing ?? 0)}
@@ -66,10 +68,10 @@ export function CompassDial({ bearing, onChange }: Props) {
         <circle cx="100" cy="100" r="86" fill="var(--card-2)" stroke="var(--line)" strokeWidth="1.5" />
         {ticks}
         <g fill="var(--color-ink-3)" fontSize="12" fontWeight="600" textAnchor="middle">
-          <text x="100" y="28">N</text>
-          <text x="176" y="106">E</text>
-          <text x="100" y="182">S</text>
-          <text x="24" y="106">W</text>
+          <text x="100" y="28">{t.cardinals.n}</text>
+          <text x="176" y="106">{t.cardinals.e}</text>
+          <text x="100" y="182">{t.cardinals.s}</text>
+          <text x="24" y="106">{t.cardinals.w}</text>
         </g>
         <g
           className="transition-transform duration-300"
@@ -84,10 +86,10 @@ export function CompassDial({ bearing, onChange }: Props) {
         <p className="flex items-baseline gap-2">
           <b className="font-display text-2xl font-bold tracking-tighter"
              style={{ fontVariationSettings: "'wdth' 112" }}>
-            {bearing == null ? 'Any' : compassPoint(bearing)}
+            {bearing == null ? t.compassDial.any : compassPoint(bearing, t.compass)}
           </b>
           <span className="text-[0.82rem] text-ink-3">
-            {bearing == null ? 'direction unset' : `${Math.round(bearing)}°`}
+            {bearing == null ? t.compassDial.unset : `${Math.round(bearing)}°`}
           </span>
         </p>
         <button
@@ -95,10 +97,10 @@ export function CompassDial({ bearing, onChange }: Props) {
           onClick={() => onChange(null)}
           className="rounded-full border border-line px-3 py-1.5 text-[0.82rem] font-semibold text-ink-2 transition hover:bg-card"
         >
-          I'd rather not say
+          {t.compassDial.clear}
         </button>
         <p className="text-[0.74rem] text-ink-3 text-pretty">
-          Without a bearing every wind is treated as half headwind, half cross.
+          {t.compassDial.hint}
         </p>
       </div>
     </div>

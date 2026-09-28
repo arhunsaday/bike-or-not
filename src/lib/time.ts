@@ -1,4 +1,5 @@
 import { addDays as addDaysFn, format, parseISO } from 'date-fns'
+import { dateLocale, messages, type Lang } from '@/i18n'
 import { clamp } from './units'
 
 /** Open-Meteo local ISO strings ("2026-09-05T08:00") carry no zone — the API
@@ -32,8 +33,9 @@ export function fmtClock(hhmm: string, clock12: boolean): string {
   return format(d, d.getMinutes() === 0 ? 'ha' : 'h:mma').toLowerCase()
 }
 
-export function dayLabel(date: string, today: string, long = false): string {
-  if (date === today) return 'Today'
-  if (date === addDays(today, 1)) return long ? 'Tomorrow' : 'Tmrw'
-  return format(parseISO(`${date}T12:00:00`), long ? 'EEEE' : 'EEE')
+export function dayLabel(date: string, today: string, lang: Lang, long = false): string {
+  const { days } = messages(lang)
+  if (date === today) return long ? days.today : days.todayShort
+  if (date === addDays(today, 1)) return long ? days.tomorrow : days.tomorrowShort
+  return format(parseISO(`${date}T12:00:00`), long ? 'EEEE' : 'EEE', { locale: dateLocale(lang) })
 }

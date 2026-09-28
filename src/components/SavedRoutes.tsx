@@ -1,10 +1,12 @@
 import { Bookmark, BookmarkPlus, Check, X } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { useT } from '@/i18n'
 import { routeKey, useSettings } from '@/store/settings'
 
 /** Quick-switch between the commutes you actually ride. */
 export function SavedRoutes() {
+  const t = useT().saved
   const { from, to, routes } = useSettings()
   const saveCurrentRoute = useSettings((s) => s.saveCurrentRoute)
   const loadRoute = useSettings((s) => s.loadRoute)
@@ -21,7 +23,7 @@ export function SavedRoutes() {
 
   function save() {
     saveCurrentRoute(name)
-    toast.success(`Saved “${name.trim() || `${from!.name} → ${to!.name}`}”`)
+    toast.success(t.saved(name.trim() || `${from!.name} → ${to!.name}`))
     setNaming(false)
     setName('')
   }
@@ -49,7 +51,7 @@ export function SavedRoutes() {
             <button
               type="button"
               onClick={() => deleteRoute(r.id)}
-              aria-label={`Delete ${r.name}`}
+              aria-label={t.remove(r.name)}
               className="rounded-full p-1 pr-2 text-ink-3 opacity-0 transition hover:text-ink focus-visible:opacity-100 group-hover:opacity-100"
             >
               <X size={11} />
@@ -68,11 +70,11 @@ export function SavedRoutes() {
               if (e.key === 'Enter') save()
               if (e.key === 'Escape') setNaming(false)
             }}
-            placeholder={from && to ? `${from.name} → ${to.name}` : 'Name'}
+            placeholder={from && to ? `${from.name} → ${to.name}` : t.namePlaceholder}
             maxLength={40}
             className="w-40 bg-transparent py-0.5 text-[0.78rem] outline-none placeholder:text-ink-3"
           />
-          <button type="button" onClick={save} aria-label="Save route"
+          <button type="button" onClick={save} aria-label={t.save}
                   className="rounded-full p-1 text-verdict transition hover:brightness-125">
             <Check size={13} />
           </button>
@@ -84,7 +86,7 @@ export function SavedRoutes() {
           className="flex items-center gap-1.5 rounded-full border border-dashed border-line px-2.5 py-1 text-[0.78rem] text-ink-3 transition hover:border-verdict hover:text-ink"
         >
           <BookmarkPlus size={12} />
-          Save this route
+          {t.saveThis}
         </button>
       ) : null}
     </div>

@@ -1,3 +1,4 @@
+import { useT } from '@/i18n'
 import { compassPoint } from '@/lib/geo'
 import type { LegScore } from '@/model/types'
 
@@ -9,6 +10,7 @@ const pointAt = (deg: number, radius: number): [number, number] => {
 
 /** Where the wind is pushing you, relative to where you are pointing. */
 export function WindRose({ leg, bearing }: { leg: LegScore; bearing: number | null }) {
+  const t = useT()
   const to = (leg.rec.windDir + 180) % 360 // the direction the wind blows toward
   const [wx1, wy1] = pointAt(to + 180, R - 2)
   const [wx2, wy2] = pointAt(to, R - 15)
@@ -18,7 +20,7 @@ export function WindRose({ leg, bearing }: { leg: LegScore; bearing: number | nu
 
   return (
     <svg viewBox="0 0 100 108" className="w-full overflow-visible"
-         role="img" aria-label="Wind relative to your direction of travel">
+         role="img" aria-label={t.windRose.label}>
       <circle cx="50" cy="50" r={R} fill="none" stroke="var(--line)" strokeWidth="1.5" />
       <line x1="50" y1={50 - R} x2="50" y2={50 + R} stroke="var(--line-soft)" />
       <line x1={50 - R} y1="50" x2={50 + R} y2="50" stroke="var(--line-soft)" />
@@ -38,10 +40,10 @@ export function WindRose({ leg, bearing }: { leg: LegScore; bearing: number | nu
         </>
       )}
 
-      <text x="50" y="12" textAnchor="middle" fontSize="9" fill="var(--color-ink-3)">N</text>
+      <text x="50" y="12" textAnchor="middle" fontSize="9" fill="var(--color-ink-3)">{t.cardinals.n}</text>
       <text x="50" y="104" textAnchor="middle" fontSize="9" fill="var(--color-ink-3)"
             letterSpacing="0.06em">
-        {bearing == null ? 'no bearing set' : `riding ${compassPoint(bearing)}`}
+        {bearing == null ? t.windRose.noBearing : t.windRose.riding(compassPoint(bearing, t.compass))}
       </text>
     </svg>
   )

@@ -46,6 +46,10 @@ click. Kept in `localStorage` alongside your settings.
 showing a city you have never been to. Tap targets are thumb-sized, the week
 scrolls, and nothing is gated behind a hover.
 
+**English and French.** The first run follows the browser's language — French
+if it is French, English for everything else — and it can be switched in
+settings. Place search returns names in the same language.
+
 **Six forecasts, not one.** ECMWF, ICON, GFS, GEM, UKMO and ARPEGE are queried
 together. Where they disagree you are told; where several of them see rain the
 headline forecast has missed, the score takes the more cautious view.

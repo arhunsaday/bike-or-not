@@ -13,6 +13,7 @@
 import type { z } from 'zod'
 import type { ConsensusSchema } from '@/api/schemas'
 import { MODELS } from '@/api/open-meteo'
+import { messages, type Lang } from '@/i18n'
 import { clamp } from '@/lib/units'
 
 type ConsensusPayload = z.infer<typeof ConsensusSchema>
@@ -97,7 +98,9 @@ export interface Confidence {
 export function commuteConfidence(
   map: Map<string, HourConsensus>,
   isos: string[],
+  lang: Lang,
 ): Confidence | null {
+  const m = messages(lang).confidence
   const hours = isos.map((t) => map.get(t)).filter((h): h is HourConsensus => h != null)
   if (!hours.length) return null
 
@@ -111,18 +114,17 @@ export function commuteConfidence(
 
   const n = weakest.models
   const headline =
-    weakest.wetVotes === 0 ? `All ${n} models say dry`
-      : weakest.wetVotes === n ? `All ${n} models say rain`
-        : `${weakest.wetVotes} of ${n} models expect rain`
+    weakest.wetVotes === 0 ? m.allDry(n)
+      : weakest.wetVotes === n ? m.allRain(n)
+        : m.some(weakest.wetVotes, n)
 
   const other = hours.find((h) => h !== weakest)
   const bothAgree = !other || other.wetVotes === weakest.wetVotes
 
   const detail =
-    `${headline}${bothAgree ? ' on both legs' : ` on the less certain leg (${other.wetVotes} of ${other.models} on the other)`}. ` +
-    `Spread across models: ${weakest.tempSpread.toFixed(1)}° and ` +
-    `${Math.round(weakest.windSpread)} km/h. ` +
-    `Checked against ${MODELS.map((m) => m.name).join(', ')}.`
+    `${headline}${bothAgree ? m.bothLegs : m.lessCertain(other.wetVotes, other.models)}. ` +
+    `${m.spread(weakest.tempSpread, Math.round(weakest.windSpread))} ` +
+    m.checked(MODELS.map((model) => model.name).join(', '))
 
   return { level, pct: Math.round(weakest.agreement * 100), headline, detail }
 }

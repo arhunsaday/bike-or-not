@@ -1,3 +1,5 @@
+import type { Lang } from '@/i18n/detect'
+
 export type Units = 'metric' | 'imperial'
 
 const cToF = (c: number) => (c * 9) / 5 + 32
@@ -24,8 +26,11 @@ export const fmtSpeed = (k: number | null | undefined, u: Units) =>
 export const fmtSpeedValue = (k: number, u: Units) =>
   `${Math.round(isMetric(u) ? k : kmhToMph(k))}`
 
-export const fmtDist = (km: number, u: Units) =>
-  isMetric(u) ? `${round(km, 1)} km` : `${round(kmToMi(km), 1)} mi`
+/** French writes a decimal comma. */
+export const fmtDist = (km: number, u: Units, lang: Lang = 'en') => {
+  const v = String(round(isMetric(u) ? km : kmToMi(km), 1))
+  return `${lang === 'fr' ? v.replace('.', ',') : v} ${isMetric(u) ? 'km' : 'mi'}`
+}
 
 export const fmtElevation = (m: number, u: Units) =>
   isMetric(u) ? `${Math.round(m)} m` : `${Math.round(mToFt(m))} ft`

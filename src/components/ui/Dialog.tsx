@@ -1,6 +1,7 @@
 import * as RD from '@radix-ui/react-dialog'
 import { X } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { useT } from '@/i18n'
 import { cn } from '@/lib/cn'
 
 interface Props {
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export function Dialog({ open, onOpenChange, title, description, children, className }: Props) {
+  const t = useT()
   return (
     <RD.Root open={open} onOpenChange={onOpenChange}>
       <RD.Portal>
@@ -35,7 +37,7 @@ export function Dialog({ open, onOpenChange, title, description, children, class
               )}
             </div>
             <RD.Close
-              aria-label="Close"
+              aria-label={t.dialog.close}
               className="grid size-11 shrink-0 place-items-center rounded-xl border border-line bg-card text-ink-2 transition hover:text-ink active:scale-95 sm:size-10"
             >
               <X size={17} />

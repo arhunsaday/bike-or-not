@@ -1,16 +1,18 @@
 import { buildKit } from '@/model/kit'
 import type { Commute, RideSettings } from '@/model/types'
+import { useT } from '@/i18n'
 import { cn } from '@/lib/cn'
 import { Card, CardHead } from './ui/Card'
 
 export function KitList({ commute, settings }: { commute: Commute; settings: RideSettings }) {
+  const t = useT()
   const { kit, notes } = buildKit(commute, settings)
 
   return (
     <Card>
       <CardHead
-        title="Pack this"
-        note={`Sized for the colder leg · ≈${commute.out.minutes} min out, ${commute.back.minutes} min back`}
+        title={t.kitList.title}
+        note={t.kitList.note(commute.out.minutes, commute.back.minutes)}
       />
 
       <ul className="grid grid-cols-[repeat(auto-fit,minmax(11.5rem,1fr))] gap-2">

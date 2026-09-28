@@ -1,20 +1,14 @@
 import { CloudDrizzle, Sun, ThumbsUp } from 'lucide-react'
 import { routeKey, useSettings, type FeedbackAnswer } from '@/store/settings'
+import { useT } from '@/i18n'
 import type { Commute } from '@/model/types'
 
-interface Option {
-  answer: FeedbackAnswer
-  /** Full phrasing, once there is room for it. */
-  label: string
-  /** Phones get three buttons in a row; the long labels wrapped to three lines. */
-  short: string
-  icon: typeof Sun
-}
-
-const OPTIONS: Option[] = [
-  { answer: 'harsh', label: 'Better than it said', short: 'Better', icon: Sun },
-  { answer: 'right', label: 'About right', short: 'Spot on', icon: ThumbsUp },
-  { answer: 'optimistic', label: 'Worse than it said', short: 'Worse', icon: CloudDrizzle },
+/** Each answer has a full label and, because phones get three buttons in a
+ *  row and the long labels wrapped to three lines, a short one. */
+const OPTIONS: { answer: FeedbackAnswer; icon: typeof Sun }[] = [
+  { answer: 'harsh', icon: Sun },
+  { answer: 'right', icon: ThumbsUp },
+  { answer: 'optimistic', icon: CloudDrizzle },
 ]
 
 /**
@@ -23,6 +17,7 @@ const OPTIONS: Option[] = [
  * would take to replace them with something personal.
  */
 export function FeedbackBar({ commute, verdict }: { commute: Commute; verdict: string }) {
+  const t = useT().feedback
   const { from, to, feedback } = useSettings()
   const record = useSettings((s) => s.recordFeedback)
 
@@ -32,11 +27,12 @@ export function FeedbackBar({ commute, verdict }: { commute: Commute; verdict: s
   return (
     <div className="glass card-sheen flex flex-wrap items-center gap-x-4 gap-y-2 rounded-card px-4 py-3 sm:px-5">
       <p className="text-[0.85rem] text-ink-2">
-        {existing ? 'Thanks — noted for next time.' : 'How did that ride actually go?'}
+        {existing ? t.thanks : t.ask}
       </p>
 
       <div className="flex w-full gap-1.5 sm:ml-auto sm:w-auto">
-        {OPTIONS.map(({ answer, label, short, icon: Icon }) => {
+        {OPTIONS.map(({ answer, icon: Icon }) => {
+          const { label, short } = t[answer]
           const chosen = existing?.answer === answer
           return (
             <button

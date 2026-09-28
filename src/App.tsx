@@ -14,10 +14,11 @@ import { VerdictCard } from '@/components/VerdictCard'
 import { WeekOutlook } from '@/components/WeekOutlook'
 import { IconButton } from '@/components/ui/Card'
 import { useCommute } from '@/hooks/useCommute'
+import { useT } from '@/i18n'
 import { cn } from '@/lib/cn'
 import { scoreColor } from '@/lib/units'
 import { topFactor, verdict } from '@/model/score'
-import { DEMO_POINT, useSettings } from '@/store/settings'
+import { useSettings } from '@/store/settings'
 
 /** Stagger the reveal without making visibility depend on JavaScript. */
 // Recharts is roughly two thirds of the bundle; it loads on its own.
@@ -35,7 +36,9 @@ export default function App() {
     isDemo, hasRoute, routePending, routeFailed, isLoading, isFetching, error, refetch,
   } = useCommute(activeDate)
 
+  const t = useT()
   const dark = useThemeClass(settings.theme)
+  useDocumentLanguage(settings.lang, t.documentTitle)
   useShortcuts(() => setSettingsOpen(true), () => void refetch())
 
   const locationAsked = useSettings((s) => s.locationAsked)
@@ -44,16 +47,16 @@ export default function App() {
   useEffect(() => {
     if (!routeFailed || routeWarned.current) return
     routeWarned.current = true
-    toast('Route service unavailable', {
-      description: 'Falling back to straight-line distance, so the climb and journey time are rougher than usual.',
+    toast(t.app.routeUnavailable, {
+      description: t.app.routeUnavailableDetail,
       duration: 7000,
     })
-  }, [routeFailed])
+  }, [routeFailed, t])
 
   const accent = commute ? scoreColor(commute.combined) : '#34d399'
   const placeLabel = hasRoute && settings.from && settings.to
     ? `${settings.from.name} → ${settings.to.name}`
-    : settings.from?.name ?? DEMO_POINT.label
+    : settings.from?.name ?? t.demoCity
 
   return (
     <>
@@ -72,10 +75,10 @@ export default function App() {
         </div>
 
         <div className="ml-auto flex gap-2">
-          <IconButton onClick={() => void refetch()} title="Refresh forecast" aria-label="Refresh forecast">
+          <IconButton onClick={() => void refetch()} title={t.app.refresh} aria-label={t.app.refresh}>
             <RefreshCw size={16} className={cn(isFetching && 'animate-spin')} />
           </IconButton>
-          <IconButton onClick={() => setSettingsOpen(true)} title="Settings" aria-label="Settings">
+          <IconButton onClick={() => setSettingsOpen(true)} title={t.app.settings} aria-label={t.app.settings}>
             <Settings2 size={16} />
           </IconButton>
         </div>
@@ -89,14 +92,14 @@ export default function App() {
 
         {error && (
           <Card tone="error">
-            <b className="block text-[1.05rem] font-semibold">Could not reach the forecast</b>
+            <b className="block text-[1.05rem] font-semibold">{t.app.forecastError}</b>
             <p className="mt-1 text-ink-2">{error.message}</p>
             <button
               type="button"
               onClick={() => void refetch()}
               className="mt-3 rounded-full border border-line bg-card px-4 py-2 text-[0.88rem] font-semibold transition hover:bg-card-2"
             >
-              Try again
+              {t.app.tryAgain}
             </button>
           </Card>
         )}
@@ -149,22 +152,22 @@ export default function App() {
               <div {...rise(6)}>
                 <FeedbackBar
                   commute={commute}
-                  verdict={verdict(commute.combined, commute.blockers, topFactor(commute)).word}
+                  verdict={verdict(commute.combined, settings.lang, commute.blockers, topFactor(commute)).word}
                 />
               </div>
             )}
 
             <footer className="pt-2 text-center text-[0.79rem] text-ink-3">
               <p>
-                Six-model consensus, air quality and elevation by{' '}
+                {t.app.sourcesBefore}{' '}
                 <a href="https://open-meteo.com" target="_blank" rel="noopener noreferrer"
                    className="underline decoration-ink-3 underline-offset-2">Open-Meteo</a>.
-                {' '}Updated {new Date(model.fetchedAt).toLocaleTimeString([], {
+                {' '}{t.app.updated(new Date(model.fetchedAt).toLocaleTimeString(t.locale, {
                   hour: '2-digit', minute: '2-digit', hour12: settings.clock12,
-                })}.
+                }))}
               </p>
               <p className="mt-1 opacity-70">
-                A model, not a promise. Ice, traffic and your own legs are not in the forecast.
+                {t.app.disclaimer}
               </p>
             </footer>
           </>
@@ -222,6 +225,13 @@ function useThemeClass(theme: 'auto' | 'dark' | 'light') {
   }, [dark])
 
   return dark
+}
+
+function useDocumentLanguage(lang: string, title: string) {
+  useEffect(() => {
+    document.documentElement.lang = lang
+    document.title = title
+  }, [lang, title])
 }
 
 function useShortcuts(openSettings: () => void, refresh: () => void) {
