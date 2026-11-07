@@ -2,7 +2,7 @@
 <html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
     <title>bike or not — should you ride today?</title>
     <meta name="description" content="A commute-aware weather verdict for cyclists. Scores both legs of your actual route against its bearing, gradient, your kit and your tolerance." />
     <meta name="theme-color" content="#080b16" />
@@ -16,6 +16,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,400..900&family=Inter:wght@400..800&display=swap" rel="stylesheet" />
+    <script>
+      // Installed-app feel: no pinch zoom on iOS (it ignores user-scalable).
+      document.addEventListener("gesturestart", (e) => e.preventDefault(), { passive: false });
+    </script>
   </head>
   <body>
     <div id="root"></div>

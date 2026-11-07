@@ -33,6 +33,8 @@ createRoot(document.getElementById('root')!).render(
             and its default stacking order puts toasts over open dialogs. */}
         <Toaster
           position="bottom-center"
+          mobileOffset={{ bottom: 'calc(16px + env(safe-area-inset-bottom))' }}
+          offset={{ bottom: 'calc(24px + env(safe-area-inset-bottom))' }}
           style={{
             zIndex: 45,
             '--width': 'min(24rem, calc(100vw - 1.5rem))',

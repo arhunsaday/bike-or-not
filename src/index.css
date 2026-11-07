@@ -64,7 +64,7 @@
 @layer base {
   * { border-color: var(--line); }
 
-  html { color-scheme: light; }
+  html { color-scheme: light; touch-action: manipulation; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
   html.dark { color-scheme: dark; }
 
   body {
